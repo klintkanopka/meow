@@ -10,7 +10,7 @@ data_existing <- function(
   diff_path = 'data/true-sample-diff.rds'
 ) {
   out <- list(
-    resp = read.csv(resp_path),
+    resp = utils::read.csv(resp_path),
     theta_tru = readRDS(theta_path),
     diff_tru = readRDS(diff_path)
   )
@@ -23,12 +23,14 @@ data_existing <- function(
 #' @param N_items Number of items to simulate
 #' @param data_seed A random seed for generating reproducible data. This seed is re-initialized at the end of the data generation process
 #' @returns A list with three components: A dataframe of item response named `resp`, a vector of true respondent abilities named `theta_tru`, and a vector of true item difficulties named `diff_tru`
+#'
+#' @importFrom rlang .data
 data_default <- function(N_persons = 100, N_items = 50, data_seed = 242424) {
   # note default behavior is fixed seed to ensure data consistency across runs
   set.seed(data_seed)
 
-  theta_tru <- rnorm(N_persons)
-  diff_tru <- rnorm(N_items)
+  theta_tru <- stats::rnorm(N_persons)
+  diff_tru <- stats::rnorm(N_items)
 
   theta_mat <- matrix(
     theta_tru,
@@ -38,18 +40,22 @@ data_default <- function(N_persons = 100, N_items = 50, data_seed = 242424) {
   )
   diff_mat <- matrix(diff_tru, nrow = N_persons, ncol = N_items, byrow = TRUE)
 
-  p <- plogis(theta_mat - diff_mat)
-  resp <- matrix(rbinom(length(p), 1, p), nrow = N_persons, ncol = N_items) |>
+  p <- stats::plogis(theta_mat - diff_mat)
+  resp <- matrix(
+    stats::rbinom(length(p), 1, p),
+    nrow = N_persons,
+    ncol = N_items
+  ) |>
     as.data.frame() |>
     dplyr::mutate(id = 1:N_persons) |>
     tidyr::pivot_longer(
-      starts_with('V'),
+      tidyselect::starts_with('V'),
       names_to = 'item',
       values_to = 'resp',
       names_prefix = 'V'
     ) |>
-    dplyr::select(id, item, resp) |>
-    dplyr::mutate(across(everything(), as.numeric))
+    dplyr::select(.data$id, .data$item, .data$resp) |>
+    dplyr::mutate(dplyr::across(tidyselect::everything(), as.numeric))
 
   out <- list(resp = resp, theta_tru = theta_tru, diff_tru = diff_tru)
   set.seed(NULL)

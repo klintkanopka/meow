@@ -23,6 +23,8 @@ cat_simulation(
 \item{init}{A list of intialization values for estimated person and item parameters. Currently accepts a named list with two entities: \code{theta} and \code{diff}, for initial estimated values of ability and difficulty, respectively. Defaults to \code{NULL}, which initializes all estimated parameters to zero.}
 
 \item{fix}{Which estimated parameters to treat as fixed. Currently defaults to \code{none}, but accepts \code{theta}, \code{diff}, or \code{both}.`}
+
+\item{...}{Named arguments to be passed to data_loader, select_fun, or update_fun}
 }
 \value{
 A list of four named entities, \code{results} is a dataframe with one row per iteration of the simulation. It contains three general columns, \code{iter} for the iteration number, a RMSE pooled across person abilities named \code{rmse_theta}, and the RMSE pooled across item difficulties named \code{rmse_diff}. Additionally there is one column per person and item, one for the associated estimated parameter (ability or difficulty) and one for the bias in that estimate. Next is a list of item-item adjacency matrices, contained in \code{adj_mats}. One matrix is provided per iteration of the simulation, and edge weights are the number of respondents who have responded to each pair of items. Finally, true ability and difficulty vectors are returned in \code{theta_tru} and \code{diff_tru}.

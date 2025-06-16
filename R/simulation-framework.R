@@ -1,4 +1,4 @@
-#' Constructs an item pool adjacency matrix. For an item pool with $N$ items, this is an $N \times N$ matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within `cat_simulation()` calls.
+#' Constructs an item pool adjacency matrix. For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within `cat_simulation()` calls.
 #'
 #' @param resp_cur A long-form dataframe of observed item responses.
 #' @param theta_tru A vector of true respondent abilities.
@@ -24,6 +24,7 @@ construct_adj_mat <- function(resp_cur, theta_tru, diff_tru) {
 #' @param data_loader A function that specifies the data generating process.
 #' @param init A list of intialization values for estimated person and item parameters. Currently accepts a named list with two entities: `theta` and `diff`, for initial estimated values of ability and difficulty, respectively. Defaults to `NULL`, which initializes all estimated parameters to zero.
 #' @param fix Which estimated parameters to treat as fixed. Currently defaults to `none`, but accepts `theta`, `diff`, or `both`.`
+#' @param ... Named arguments to be passed to data_loader, select_fun, or update_fun
 #' @returns A list of four named entities, `results` is a dataframe with one row per iteration of the simulation. It contains three general columns, `iter` for the iteration number, a RMSE pooled across person abilities named `rmse_theta`, and the RMSE pooled across item difficulties named `rmse_diff`. Additionally there is one column per person and item, one for the associated estimated parameter (ability or difficulty) and one for the bias in that estimate. Next is a list of item-item adjacency matrices, contained in `adj_mats`. One matrix is provided per iteration of the simulation, and edge weights are the number of respondents who have responded to each pair of items. Finally, true ability and difficulty vectors are returned in `theta_tru` and `diff_tru`.
 cat_simulation <- function(
   select_fun,

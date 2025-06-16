@@ -1,0 +1,20 @@
+---
+title: "Data Generation"
+vignette: >
+  %\VignetteIndexEntry{Data Generation}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+```{r}
+#| label: setup
+library(meow)
+```
+
+# Writing your own data loaders
+
+Data loaders are where you encode your data generating process (DGP) for a simulation.

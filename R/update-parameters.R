@@ -2,12 +2,12 @@ update_theta_mle <- function(theta, diff, resp) {
   # MLE estimation of theta, treating difficulty as fixed
   theta_mle <- function(theta, diff, resp) {
     loglik <- function(theta, diff, resp) {
-      p <- plogis(theta[resp$id] - diff[resp$item])
+      p <- stats::plogis(theta[resp$id] - diff[resp$item])
       ll <- sum(resp$resp * log(p) + (1 - resp$resp) * log(1 - p))
       return(ll)
     }
 
-    est <- optim(
+    est <- stats::optim(
       theta,
       loglik,
       lower = -4,
@@ -37,7 +37,7 @@ update_maths_garden <- function(theta, diff, resp) {
   # where S_ij is the observed score and E(S_ij) is the expected probability
 
   # Calculate expected probabilities using logistic function
-  E_Sij <- plogis(theta[resp$id] - diff[resp$item])
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
 
   # Learning rates (K values) - these could be tuned
   K_theta <- 0.1 # Learning rate for ability
@@ -92,7 +92,7 @@ update_prowise_learn <- function(theta, diff, resp) {
   K_beta <- 0.1 # Learning rate for difficulty
 
   # Calculate expected probabilities for all responses
-  E_Sij <- plogis(theta[resp$id] - diff[resp$item])
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
 
   # Update theta (ability) for each person
   for (j in unique(resp$id)) {
