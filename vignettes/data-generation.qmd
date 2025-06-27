@@ -10,10 +10,11 @@ knitr:
     comment: '#>'
 ---
 
+The `meow` framework is built around a central function, `meow_sim()`. 
 
 # Writing your own data loaders
 
-Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very barebones data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let's start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the `meow` ecosystem.
+Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very basic data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let's start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the `meow` ecosystem.
 
 ```
 data_existing <- function(
@@ -114,4 +115,6 @@ $$P(x_{ij} = 1 | \theta_i) = \frac{1}{1+e^{-(\theta_i - b_j)}}$$
 4. Clears the seed by calling `set.seed(NULL)`, so that the subsequent analysis is not determined by the data seed. 
 5. Packages these items up and returns them inside of a list.
 
-The notes about seed setting and clearing are **especially** important if you want to be able to use the same data in multiple `meow` simulations without fixing the seeds for all subsequent analysis!
+# Final important note on setting random seeds
+
+If your data loader uses any random number generation and you allow it to take a random seed for reproducibility, make sure to clear the seed at the end of your data loader by calling `set.seed(NULL)`. If you don't, the current version of that seed will persist for all of the downstream simulation, and the full process will become deterministic. Specifically, if you want to compare multiple runs of an item selection and/or parameter update algorithm that uses some degree of randomization when applied to the same dataset, failing to clear the seed at the end of the data loader will make this impossible.

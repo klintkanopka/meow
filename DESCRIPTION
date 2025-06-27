@@ -1,6 +1,6 @@
 Package: meow
 Title: Unified Framework for Computer Adaptive Testing Simulations
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(
     person("Klint", "Kanopka", , "klint.kanopka@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3196-9538")),

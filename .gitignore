@@ -8,3 +8,4 @@ meow.Rproj
 docs
 inst/doc
 **/.quarto/
+.vscode/settings.json
