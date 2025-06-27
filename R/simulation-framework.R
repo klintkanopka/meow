@@ -26,7 +26,7 @@ construct_adj_mat <- function(resp_cur, theta_tru, diff_tru) {
 #' @param fix Which estimated parameters to treat as fixed. Currently defaults to `none`, but accepts `theta`, `diff`, or `both`.`
 #' @param ... Named arguments to be passed to data_loader, select_fun, or update_fun
 #' @returns A list of four named entities, `results` is a dataframe with one row per iteration of the simulation. It contains three general columns, `iter` for the iteration number, a RMSE pooled across person abilities named `rmse_theta`, and the RMSE pooled across item difficulties named `rmse_diff`. Additionally there is one column per person and item, one for the associated estimated parameter (ability or difficulty) and one for the bias in that estimate. Next is a list of item-item adjacency matrices, contained in `adj_mats`. One matrix is provided per iteration of the simulation, and edge weights are the number of respondents who have responded to each pair of items. Finally, true ability and difficulty vectors are returned in `theta_tru` and `diff_tru`.
-cat_simulation <- function(
+meow_sim <- function(
   select_fun,
   update_fun,
   data_loader,

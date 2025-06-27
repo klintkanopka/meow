@@ -56,7 +56,8 @@ select_max_info <- function(
   diff,
   resp,
   resp_cur = NULL,
-  adj_mat = NULL
+  adj_mat = NULL,
+  select.seed = NULL
 ) {
   if (is.null(resp_cur)) {
     return(resp[resp$item <= 5, ])
