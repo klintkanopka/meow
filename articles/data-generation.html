@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">meow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,9 +67,10 @@
 
 
 
-    <section class="section level2"><h2 id="writing-your-own-data-loaders">Writing your own data loaders<a class="anchor" aria-label="anchor" href="#writing-your-own-data-loaders"></a>
+    <p>The <code>meow</code> framework is built around a central function, <code>meow_sim()</code>.</p>
+<section class="section level2"><h2 id="writing-your-own-data-loaders">Writing your own data loaders<a class="anchor" aria-label="anchor" href="#writing-your-own-data-loaders"></a>
 </h2>
-<p>Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very barebones data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let’s start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the <code>meow</code> ecosystem.</p>
+<p>Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very basic data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let’s start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the <code>meow</code> ecosystem.</p>
 <pre><code><span><span class="va">data_existing</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
 <span>  <span class="va">resp_path</span> <span class="op">=</span> <span class="st">'data/sample-resp.csv'</span>,</span>
 <span>  <span class="va">theta_path</span> <span class="op">=</span> <span class="st">'data/true-sample-theta.rds'</span>,</span>
@@ -151,8 +152,9 @@
 </li>
 <li>Clears the seed by calling <code>set.seed(NULL)</code>, so that the subsequent analysis is not determined by the data seed.</li>
 <li>Packages these items up and returns them inside of a list.</li>
-</ol>
-<p>The notes about seed setting and clearing are <strong>especially</strong> important if you want to be able to use the same data in multiple <code>meow</code> simulations without fixing the seeds for all subsequent analysis!</p>
+</ol></section><section class="section level2"><h2 id="final-important-note-on-setting-random-seeds">Final important note on setting random seeds<a class="anchor" aria-label="anchor" href="#final-important-note-on-setting-random-seeds"></a>
+</h2>
+<p>If your data loader uses any random number generation and you allow it to take a random seed for reproducibility, make sure to clear the seed at the end of your data loader by calling <code>set.seed(NULL)</code>. If you don’t, the current version of that seed will persist for all of the downstream simulation, and the full process will become deterministic. Specifically, if you want to compare multiple runs of an item selection and/or parameter update algorithm that uses some degree of randomization when applied to the same dataset, failing to clear the seed at the end of the data loader will make this impossible.</p>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
