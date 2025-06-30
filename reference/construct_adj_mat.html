@@ -37,12 +37,12 @@
     </div>
 
     <div class="ref-description section level2">
-    <p>Constructs an item pool adjacency matrix. For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within <code><a href="cat_simulation.html">cat_simulation()</a></code> calls.</p>
+    <p>Constructs an item pool adjacency matrix. For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within <code>cat_simulation()</code> calls.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">construct_adj_mat</span><span class="op">(</span><span class="va">resp_cur</span>, <span class="va">theta_tru</span>, <span class="va">diff_tru</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">construct_adj_mat</span><span class="op">(</span><span class="va">resp_cur</span>, <span class="va">pers_tru</span>, <span class="va">item_tru</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -53,12 +53,12 @@
 <dd><p>A long-form dataframe of observed item responses.</p></dd>
 
 
-<dt id="arg-theta-tru">theta_tru<a class="anchor" aria-label="anchor" href="#arg-theta-tru"></a></dt>
-<dd><p>A vector of true respondent abilities.</p></dd>
+<dt id="arg-pers-tru">pers_tru<a class="anchor" aria-label="anchor" href="#arg-pers-tru"></a></dt>
+<dd><p>A dataframe of true respondent abilities.</p></dd>
 
 
-<dt id="arg-diff-tru">diff_tru<a class="anchor" aria-label="anchor" href="#arg-diff-tru"></a></dt>
-<dd><p>A vector of true item difficulties.</p></dd>
+<dt id="arg-item-tru">item_tru<a class="anchor" aria-label="anchor" href="#arg-item-tru"></a></dt>
+<dd><p>A dataframe of true item parameters.</p></dd>
 
 </dl></div>
     <div class="section level2">

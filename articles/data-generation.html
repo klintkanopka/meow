@@ -67,7 +67,7 @@
 
 
 
-    <p>The <code>meow</code> framework is built around a central function, <code>meow_sim()</code>.</p>
+    <p>The <code>meow</code> framework is built around a central function, <code><a href="../reference/meow_sim.html">meow_sim()</a></code>.</p>
 <section class="section level2"><h2 id="writing-your-own-data-loaders">Writing your own data loaders<a class="anchor" aria-label="anchor" href="#writing-your-own-data-loaders"></a>
 </h2>
 <p>Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very basic data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let’s start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the <code>meow</code> ecosystem.</p>
@@ -87,7 +87,7 @@
 </h3>
 <p>Interestingly enough, there are no required inputs for a data loader function, as it’s the first thing that gets called in an internal <code>meow</code> simulation. Your data loader can have, theoretically, whatever arguments you like with only a few exceptions.</p>
 <p>The arguments <code>theta</code>, <code>diff</code>, <code>resp</code>, <code>resp_cur</code>, <code>adj_mat</code>, and <code>select_seed</code> should not be used, as these are standard arguments used in the item selection and parameter update functions.</p>
-<p>Besides these, any argument names are generally fine and can be passed directly to your data loader through as named arguments to the <code>meow_sim()</code> function.</p>
+<p>Besides these, any argument names are generally fine and can be passed directly to your data loader through as named arguments to the <code><a href="../reference/meow_sim.html">meow_sim()</a></code> function.</p>
 </section><section class="level2"><h3 id="return-values">Return values<a class="anchor" aria-label="anchor" href="#return-values"></a>
 </h3>
 <p>First, let’s look at the output. You can see that it’s a list with three named components: <code>resp</code>, <code>theta_tru</code>, and <code>diff_tru</code>.</p>
