@@ -38,7 +38,7 @@ meow_sim <- function(
   init = NULL,
   fix = 'none'
 ) {
-  data <- do.call('data_loader', data_args)
+  data <- do.call(data_loader, data_args)
   pers_tru <- data$pers_tru
   item_tru <- data$item_tru
   resp <- data$resp
@@ -85,27 +85,51 @@ meow_sim <- function(
   while (!identical(resp_cur, resp_prev)) {
     resp_prev <- resp_cur
 
-    select_args <- c(
-      list(
-        pers = pers_est,
-        item = item_est,
-        resp = resp,
-        resp_cur = resp_cur,
-        adj_mat = adj_mat
-      ),
-      select_args
-    )
+    if (length(select_args) > 0) {
+      temp_resp <- do.call(
+        select_fun,
+        c(
+          pers = pers_est,
+          item = item_est,
+          resp = resp,
+          resp_cur = resp_cur,
+          adj_mat = adj_mat,
+          select_args
+        )
+      )
+    } else {
+      temp_resp <- do.call(
+        select_fun,
+        list(
+          pers = pers_est,
+          item = item_est,
+          resp = resp,
+          resp_cur = resp_cur,
+          adj_mat = adj_mat
+        )
+      )
+    }
 
-    update_args <- c(
-      list(
-        pers = pers_est,
-        item = item_est,
-        resp = do.call('select_fun', select_args)
-      ),
-      update_args
-    )
-
-    out <- do.call('update_fun', update_args)
+    if (length(update_args) > 0) {
+      out <- do.call(
+        update_fun,
+        c(
+          pers = pers_est,
+          item = item_est,
+          resp = temp_resp,
+          update_args
+        )
+      )
+    } else {
+      out <- do.call(
+        update_fun,
+        list(
+          pers = pers_est,
+          item = item_est,
+          resp = temp_resp
+        )
+      )
+    }
 
     pers_est <- out$pers_est
     item_est <- out$item_est

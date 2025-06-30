@@ -22,14 +22,18 @@ meow_sim(
 
 \item{data_loader}{A function that specifies the data generating process.}
 
+\item{select_args}{A named list of arguments to be passed to \code{select_fun}.}
+
+\item{update_args}{A named list of arguments to be passed to \code{update_fun}.}
+
+\item{data_args}{A named list of arguments to be passed to \code{data_loader}.}
+
 \item{init}{A list of initialization values for estimated person and item parameters. Currently accepts a named list with two entities: \code{pers} and \code{item}, for initial estimated values of ability and difficulty, respectively. Defaults to \code{NULL}, which initializes all estimated parameters to zero.}
 
 \item{fix}{Which estimated parameters to treat as fixed. Currently defaults to \code{none}, but accepts \code{pers}, \code{item}, or \code{both}.`}
-
-\item{...}{Named arguments to be passed to data_loader, select_fun, or update_fun}
 }
 \value{
-A list of four named entities, \code{results} is a dataframe with one row per iteration of the simulation. It contains three general columns, \code{iter} for the iteration number, a RMSE pooled across person abilities named \code{rmse_pers}, and the RMSE pooled across item parameters named \code{rmse_item}. Additionally there is one column per person and item, one for the associated estimated parameter (ability or difficulty) and one for the bias in that estimate. Next is a list of item-item adjacency matrices, contained in \code{adj_mats}. One matrix is provided per iteration of the simulation, and edge weights are the number of respondents who have responded to each pair of items. Finally, true ability and difficulty dataframes are returned in \code{pers_tru} and \code{item_tru}.
+A list of four named entities, \code{results} is a dataframe with one row per iteration of the simulation. It contains one \code{iter} for the iteration number and two columns per person and item parameter, one for the associated estimated parameter and one for the bias in that estimate. Next is a list of item-item adjacency matrices, contained in \code{adj_mats}. One matrix is provided per iteration of the simulation, and edge weights are the number of respondents who have responded to each pair of items. Finally, true ability and difficulty dataframes are returned in \code{pers_tru} and \code{item_tru}.
 }
 \description{
 Conducts a full CAT simulation.

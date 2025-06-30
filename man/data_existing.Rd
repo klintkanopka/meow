@@ -4,7 +4,7 @@
 \alias{data_existing}
 \title{Load data from existing files}
 \usage{
-data_existing(data_args = list())
+data_existing(resp_path, pers_path, item_path)
 }
 \arguments{
 \item{resp_path}{A file path to a long form .csv file. File should have three columns, \code{id} which contains a numeric respondent identifier, \code{item} which contains a numeric item identifier, and resp which contains an item response. Be sure the form of the item response comports with the parameter update functions you choose to use.}

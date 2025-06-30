@@ -4,9 +4,7 @@
 \alias{data_simple_1pl}
 \title{A default data generation function that simulates normally distributed respondent abilities and item difficulties}
 \usage{
-data_simple_1pl(
-  data_args = list(N_persons = 100, N_items = 50, data_seed = 242424)
-)
+data_simple_1pl(N_persons = 100, N_items = 50, data_seed = 242424)
 }
 \arguments{
 \item{N_persons}{Number of respondents to simulate}
