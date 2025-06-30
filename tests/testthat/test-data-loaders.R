@@ -1,8 +1,17 @@
-out <- data_default()
+out <- data_simple_1pl()
 
-test_that("output is correctly formed", {
+test_that("data_simple_1pl() output is correctly formed", {
   expect_type(out, 'list')
   expect_type(out$resp, 'list')
-  expect_type(out$theta_tru, 'double')
-  expect_type(out$diff_tru, 'double')
+  expect_type(out$pers_tru, 'list')
+  expect_type(out$item_tru, 'list')
+})
+
+out <- data_sample()
+
+test_that("data_sample() output is correctly formed", {
+  expect_type(out, 'list')
+  expect_type(out$resp, 'list')
+  expect_type(out$pers_tru, 'list')
+  expect_type(out$item_tru, 'list')
 })

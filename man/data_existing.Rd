@@ -4,22 +4,18 @@
 \alias{data_existing}
 \title{Load data from existing files}
 \usage{
-data_existing(
-  resp_path = "data/sample-resp.csv",
-  theta_path = "data/true-sample-theta.rds",
-  diff_path = "data/true-sample-diff.rds"
-)
+data_existing(data_args = list())
 }
 \arguments{
 \item{resp_path}{A file path to a long form .csv file. File should have three columns, \code{id} which contains a numeric respondent identifier, \code{item} which contains a numeric item identifier, and resp which contains an item response. Be sure the form of the item response comports with the parameter update functions you choose to use.}
 
-\item{theta_path}{A file path to a .rds file that contains a vector of true theta vales.}
+\item{pers_path}{A file path to a wide form .csv file that contains true person parameter values, with one person per row. Include a person index column, named \code{id}. Default column name for unidimensional person ability should be \code{theta}}
 
-\item{diff_path}{A file path to a .rds file that contains a vector of true item difficulty vales.}
+\item{item_path}{A file path to a wide form .csv file that contains true item parameter values, with one item per row. Include an item index column, named \code{item}. Default column names for difficulty should be \code{b} and default column name for discrimination should be \code{a},}
 }
 \value{
-A list with three components: A dataframe of item response named \code{resp}, a vector of true respondent abilities named \code{theta_tru}, and a vector of true item difficulties named \code{diff_tru}
+A list with three components: A dataframe of item response named \code{resp}, a dataframe of true person parameters named \code{pers_tru}, and a dataframe of true item parameters named \code{item_tru}
 }
 \description{
-Load data from existing files
+\code{data_existing()} is a wrapper for three separate calls to \code{read.csv()} that packages the output into the object used by \code{meow_sim()}.
 }

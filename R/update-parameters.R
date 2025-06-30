@@ -1,18 +1,20 @@
-update_theta_mle <- function(theta, diff, resp) {
-  # MLE estimation of theta, treating difficulty as fixed
-  theta_mle <- function(theta, diff, resp) {
-    loglik <- function(theta, diff, resp) {
-      p <- stats::plogis(theta[resp$id] - diff[resp$item])
+update_theta_mle <- function(pers, item, resp) {
+  # unidimensional 2PL MLE estimation of ability, treating item params as fixed
+  theta_mle <- function(pers, item, resp) {
+    loglik <- function(theta, item, resp) {
+      p <- stats::plogis(
+        item$a[resp$item] * (theta[resp$id] - item$b[resp$item])
+      )
       ll <- sum(resp$resp * log(p) + (1 - resp$resp) * log(1 - p))
       return(ll)
     }
 
     est <- stats::optim(
-      theta,
+      pers$theta,
       loglik,
       lower = -4,
       upper = 4,
-      diff = diff,
+      item = item,
       resp = resp,
       method = 'L-BFGS-B',
       control = list(fnscale = -1)
@@ -21,9 +23,11 @@ update_theta_mle <- function(theta, diff, resp) {
     return(est$par)
   }
 
+  pers$theta <- theta_mle(pers, item, resp)
+
   out <- list(
-    theta_est = theta_mle(theta, diff, resp),
-    diff_est = diff,
+    pers_est = pers,
+    item_est = item,
     resp_cur = resp
   )
   return(out)

@@ -8,3 +8,7 @@
 ^vignettes/\.quarto$
 ^vignettes/*_files$
 ^paper$
+^.vscode$
+^data/sample_resp.csv$
+^data/sample_pers.csv$
+^data/sample_item.csv$

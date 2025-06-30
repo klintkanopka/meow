@@ -25,3 +25,6 @@ URL: http://klintkanopka.com/meow/
 BugReports: https://github.com/klintkanopka/meow/issues
 VignetteBuilder: quarto
 Config/testthat/edition: 3
+Depends: 
+    R (>= 3.5)
+LazyData: true

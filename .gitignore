@@ -9,3 +9,7 @@ docs
 inst/doc
 **/.quarto/
 .vscode/settings.json
+data/sample_resp.csv
+data/sample_pers.csv
+data/sample_item.csv
+R/junk.R
