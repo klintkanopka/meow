@@ -10,7 +10,12 @@ knitr:
     comment: '#>'
 ---
 
-The `meow` framework is built around a central function, `meow_sim()`. 
+The `meow` framework is built around a central function, `meow_sim()`. This function relies on three other ingredients to build your simulation:
+1. A _data loader_ that either loads or generates data to perform the simulation on
+2. An _item selection function_ that implements the algorithm that selects the next item for your respondents
+3. A _parameter update function_ that implements the algorithm that is used to update the internal person and item parameters
+
+In this vignette, we will talk about what data loaders are, how to use the ones we've supplied, and how to write your own.
 
 # Writing your own data loaders
 
