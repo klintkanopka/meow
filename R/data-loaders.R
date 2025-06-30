@@ -1,12 +1,3 @@
-#' Load a sample 1PL data for testing purposes
-#'
-#' `data_sample()` loads a small sample dataset for testing purposes. These data are the same data returned by calling `data_simple_1pl()` with the default arguments.
-#'
-#' @returns A list with three components: A dataframe of item response named `resp`, a dataframe of true person parameters named `pers_tru`, and a dataframe of true item parameters named `item_tru`
-data_sample <- function() {
-  return(meow::sample_data_1pl)
-}
-
 #' Load data from existing files
 #'
 #' `data_existing()` is a wrapper for three separate calls to `read.csv()` that packages the output into the object used by `meow_sim()`.
