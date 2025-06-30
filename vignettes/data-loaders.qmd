@@ -1,7 +1,7 @@
 ---
-title: "Data Generation"
+title: "Data Loaders"
 vignette: >
-  %\VignetteIndexEntry{Data Generation}
+  %\VignetteIndexEntry{Data Loaders}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
