@@ -67,7 +67,8 @@
 
 
 
-    <p>The <code>meow</code> framework is built around a central function, <code><a href="../reference/meow_sim.html">meow_sim()</a></code>.</p>
+    <p>The <code>meow</code> framework is built around a central function, <code><a href="../reference/meow_sim.html">meow_sim()</a></code>. This function relies on three other ingredients to build your simulation: 1. A <em>data loader</em> that either loads or generates data to perform the simulation on 2. An <em>item selection function</em> that implements the algorithm that selects the next item for your respondents 3. A <em>parameter update function</em> that implements the algorithm that is used to update the internal person and item parameters</p>
+<p>In this vignette, we will talk about what data loaders are, how to use the ones we’ve supplied, and how to write your own.</p>
 <section class="section level2"><h2 id="writing-your-own-data-loaders">Writing your own data loaders<a class="anchor" aria-label="anchor" href="#writing-your-own-data-loaders"></a>
 </h2>
 <p>Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very basic data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let’s start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the <code>meow</code> ecosystem.</p>
