@@ -1,0 +1,282 @@
+---
+title: "Parameter Update Functions"
+vignette: >
+  %\VignetteIndexEntry{Parameter Update Functions}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+Parameter update functions are the core estimation component of the `meow` framework. These functions take the current parameter estimates and response data, then update the person and item parameters based on the chosen estimation algorithm. The quality and efficiency of these functions directly impact the accuracy of the adaptive testing system.
+
+In this vignette, we will explore the available parameter update functions and learn how to implement custom estimation algorithms.
+
+# Understanding Parameter Update Functions
+
+Parameter update functions in `meow` receive the current state of estimated parameters and response data, then return updated estimates. They are responsible for:
+
+- Updating person ability estimates ($\theta$)
+- Updating item difficulty estimates ($b$)
+- Updating item discrimination estimates ($a$) if using 2PL or 3PL models
+- Returning the updated response set
+
+## Function Signature
+
+All parameter update functions must follow this signature:
+
+```r
+update_function <- function(
+  pers,           # Current person parameter estimates
+  item,           # Current item parameter estimates
+  resp,           # Response data to use for estimation
+  ...             # Additional arguments
+) {
+  # Function implementation
+  
+  out <- list(
+    pers_est = updated_pers,
+    item_est = updated_item,
+    resp_cur = resp
+  )
+  return(out)
+}
+```
+
+## Return Values
+
+Parameter update functions must return a list with three components:
+
+1. **`pers_est`**: Updated person parameter estimates (dataframe with `id` column and parameter columns)
+2. **`item_est`**: Updated item parameter estimates (dataframe with `item` column and parameter columns)
+3. **`resp_cur`**: The response data used for estimation (typically the same as input `resp`)
+
+# Available Parameter Update Functions
+
+## Maximum Likelihood Estimation (MLE)
+
+The `update_theta_mle()` function updates person abilities using maximum likelihood estimation while treating item parameters as fixed:
+
+```r
+update_theta_mle <- function(pers, item, resp) {
+  # Unidimensional 2PL MLE estimation of ability, treating item params as fixed
+  theta_mle <- function(pers, item, resp) {
+    loglik <- function(theta, item, resp) {
+      p <- stats::plogis(
+        item$a[resp$item] * (theta[resp$id] - item$b[resp$item])
+      )
+      ll <- sum(resp$resp * log(p) + (1 - resp$resp) * log(1 - p))
+      return(ll)
+    }
+
+    est <- stats::optim(
+      pers$theta,
+      loglik,
+      lower = -4,
+      upper = 4,
+      item = item,
+      resp = resp,
+      method = 'L-BFGS-B',
+      control = list(fnscale = -1)
+    )
+
+    return(est$par)
+  }
+
+  pers$theta <- theta_mle(pers, item, resp)
+
+  out <- list(
+    pers_est = pers,
+    item_est = item,
+    resp_cur = resp
+  )
+  return(out)
+}
+```
+
+This function:
+1. Defines a log-likelihood function for the 2PL model
+2. Uses `stats::optim()` with L-BFGS-B method to maximize the likelihood
+3. Constrains ability estimates to the range [-4, 4]
+4. Only updates person abilities, leaving item parameters unchanged
+5. Returns the updated person estimates and unchanged item estimates
+
+## Maths Garden Update
+
+The `update_maths_garden()` function implements the update rule from the Maths Garden paper:
+
+```r
+update_maths_garden <- function(theta, diff, resp) {
+  # Implement the update rule from the maths garden paper
+  # Theta_hat_j = theta_j + K_j (S_ij - E(S_ij))
+  # Beta_hat_i = beta_i + K_i(E(S_ij)-S_ij)
+  # where S_ij is the observed score and E(S_ij) is the expected probability
+
+  # Calculate expected probabilities using logistic function
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+
+  # Learning rates (K values) - these could be tuned
+  K_theta <- 0.1 # Learning rate for ability
+  K_beta <- 0.1  # Learning rate for difficulty
+
+  # Update theta (ability) for each person
+  theta_updated <- theta
+  for (j in unique(resp$id)) {
+    # Get responses for person j
+    resp_j <- resp[resp$id == j, ]
+    # Calculate update term
+    update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
+    theta_updated[j] <- theta[j] + update_term
+  }
+
+  # Update beta (difficulty) for each item
+  beta_updated <- diff
+  for (i in unique(resp$item)) {
+    # Get responses for item i
+    resp_i <- resp[resp$item == i, ]
+    # Calculate update term
+    update_term <- K_beta * sum(E_Sij[resp$item == i] - resp_i$resp)
+    beta_updated[i] <- diff[i] + update_term
+  }
+
+  out <- list(
+    theta_est = theta_updated,
+    diff_est = beta_updated,
+    resp_cur = resp
+  )
+  return(out)
+}
+```
+
+This function implements a simple gradient-based update rule:
+1. Calculates expected response probabilities using the logistic function
+2. Updates person abilities: $\theta_j^{new} = \theta_j + K_\theta \sum_i (S_{ij} - E(S_{ij}))$
+3. Updates item difficulties: $b_i^{new} = b_i + K_b \sum_j (E(S_{ij}) - S_{ij})$
+4. Uses fixed learning rates that can be tuned
+
+## Prowise Learn Update
+
+The `update_prowise_learn()` function implements the Prowise Learn algorithm with paired item updates:
+
+```r
+update_prowise_learn <- function(theta, diff, resp) {
+  # Implement the update rule from the Prowise Learn paper with paired item updates
+  # to prevent rating drift
+
+  # Initialize updated parameters
+  theta_updated <- theta
+  diff_updated <- diff
+
+  # Learning rates (K values) - these could be tuned
+  K_theta <- 0.1 # Learning rate for ability
+  K_beta <- 0.1  # Learning rate for difficulty
+
+  # Calculate expected probabilities for all responses
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+
+  # Update theta (ability) for each person
+  for (j in unique(resp$id)) {
+    resp_j <- resp[resp$id == j, ]
+    update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
+    theta_updated[j] <- theta[j] + update_term
+  }
+
+  # Paired item updates
+  update_count <- 0
+  for (person in unique(resp$id)) {
+    person_idx <- which(resp$id == person)
+    if (length(person_idx) >= 2) {
+      for (i in 2:length(person_idx)) {
+        idx_now <- person_idx[i]
+        idx_prev <- person_idx[i - 1]
+        item_now <- resp$item[idx_now]
+        item_prev <- resp$item[idx_prev]
+        s_now <- resp$resp[idx_now]
+        s_prev <- resp$resp[idx_prev]
+        e_now <- E_Sij[idx_now]
+        e_prev <- E_Sij[idx_prev]
+        kappa <- 0.5 * (K_beta * (s_now - e_now) - K_beta * (s_prev - e_prev))
+        diff_updated[item_now] <- diff_updated[item_now] + kappa
+        diff_updated[item_prev] <- diff_updated[item_prev] - kappa
+        update_count <- update_count + 1
+      }
+    }
+  }
+  cat("Prowise item updates triggered:", update_count, "\n")
+
+  out <- list(
+    theta_est = theta_updated,
+    diff_est = diff_updated,
+    resp_cur = resp
+  )
+  return(out)
+}
+```
+
+This function:
+1. Updates person abilities using the same rule as Maths Garden
+2. Implements paired item updates to prevent rating drift
+3. For each person with multiple responses, updates pairs of consecutive items
+4. Uses the update rule: $\kappa = 0.5 \cdot (K_b \cdot (S_{now} - E_{now}) - K_b \cdot (S_{prev} - E_{prev}))$
+5. Applies $\kappa$ to the current item and $-\kappa$ to the previous item
+
+
+# Best Practices
+
+1. **Return proper format**: Always return a list with `pers_est`, `item_est`, and `resp_cur`
+2. **Handle edge cases**: Consider what happens with few responses or extreme parameter values
+3. **Parameter constraints**: Implement reasonable bounds on parameter estimates (e.g., [-4, 4] for abilities)
+4. **Numerical stability**: Use log-space calculations when appropriate to avoid numerical underflow
+5. **Convergence**: Consider implementing convergence checks for iterative methods
+6. **Documentation**: Clearly document the mathematical basis and assumptions of your algorithm
+7. **Testing**: Test your function with various scenarios before using in simulations
+
+# Using Custom Functions
+
+To use a custom parameter update function in a simulation:
+
+```r
+# Define your custom function
+my_update_function <- function(pers, item, resp, ...) {
+  # Your implementation here
+  out <- list(
+    pers_est = updated_pers,
+    item_est = updated_item,
+    resp_cur = resp
+  )
+  return(out)
+}
+
+# Use it in simulation
+results <- meow_sim(
+  select_fun = select_max_info,
+  update_fun = my_update_function,
+  data_loader = data_simple_1pl,
+  update_args = list(custom_param = 0.5),
+  data_args = list(N_persons = 100, N_items = 50)
+)
+```
+
+# Mathematical Background
+
+## Maximum Likelihood Estimation
+
+For the 2PL model, the likelihood function is:
+
+$$L(\theta) = \prod_{i=1}^{n} P(x_i|\theta)^{x_i} (1-P(x_i|\theta))^{1-x_i}$$
+
+where $P(x_i|\theta) = \frac{1}{1 + e^{-a_i(\theta - b_i)}}$
+
+The log-likelihood is:
+
+$$\ell(\theta) = \sum_{i=1}^{n} [x_i \log(P_i) + (1-x_i)\log(1-P_i)]$$
+
+## Gradient-Based Updates
+
+For gradient-based methods like Maths Garden, the update rule is:
+
+$$\theta^{new} = \theta^{old} + \eta \sum_i (x_i - P_i)$$
+
+where $\eta$ is the learning rate and $P_i$ is the expected probability of a correct response.
