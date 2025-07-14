@@ -2,3 +2,17 @@ url: http://klintkanopka.com/meow/
 template:
   bootstrap: 5
 
+articles:
+- title: Building Blocks
+  desc:  The structure and design of the core compnents of the `meow` framework
+  navbar: ~
+  contents:
+  - data-loaders
+  - item-selection
+  - parameter-update
+
+- title: Implementations
+  desc: Deeper dives into specific implementations
+  contents:
+  - maths-garden-update
+  - prowise-learn-update

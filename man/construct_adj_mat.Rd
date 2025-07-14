@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulation-framework.R
 \name{construct_adj_mat}
 \alias{construct_adj_mat}
-\title{Constructs an item pool adjacency matrix. For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within \code{cat_simulation()} calls.}
+\title{Constructs an item pool adjacency matrix.}
 \usage{
 construct_adj_mat(resp_cur, pers_tru, item_tru)
 }
@@ -17,5 +17,5 @@ construct_adj_mat(resp_cur, pers_tru, item_tru)
 An adjacency matrix of type \code{matrix}.
 }
 \description{
-Constructs an item pool adjacency matrix. For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within \code{cat_simulation()} calls.
+For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within \code{meow_sim()} calls.
 }

@@ -1,5 +1,5 @@
 ---
-title: "Maths Garden Update Algorithm"
+title: "Implementing the Maths Garden Update Algorithm"
 vignette: >
   %\VignetteIndexEntry{Maths Garden Update Algorithm}
   %\VignetteEngine{quarto::html}

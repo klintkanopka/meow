@@ -1,5 +1,5 @@
 ---
-title: "Prowise Learn Update Algorithm"
+title: "Implementing the Prowise Learn Update Algorithm"
 vignette: >
   %\VignetteIndexEntry{Prowise Learn Update Algorithm}
   %\VignetteEngine{quarto::html}
