@@ -13,6 +13,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Unified Framework for Computer Adaptive Testing Simulations">
 <meta name="description" content="Provides an extensible framework for conducting simulations to compare data generating processes, item selection algorithms, parameter update algorithms, and stopping rules in computer adaptive testing (CAT) applications.">
 <meta property="og:description" content="Provides an extensible framework for conducting simulations to compare data generating processes, item selection algorithms, parameter update algorithms, and stopping rules in computer adaptive testing (CAT) applications.">
+<meta property="og:image" content="http://klintkanopka.com/meow/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -64,9 +65,11 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="meow-">meow <a href="http://klintkanopka.com/meow/"><img src="reference/figures/logo.png" align="right" height="120" alt="meow website"></a>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="meow-">meow 
 <a class="anchor" aria-label="anchor" href="#meow-"></a>
-</h1></div>
+</h1>
+</div>
 <p><code>meow</code> is a package for conducting simulations of computer adaptive testing (CAT). The pitch here is that <code>meow</code> is a framework that facilitates reproducible comparisons between different combinations of data generating processes (DGPs), item selection algorithms, and parameter update algorithms.</p>
 <p>We do this by functionalizing these components as treating them modular for use in a core simulation harness that produces consistent outputs with some <code>ggplot2</code>-based visualization tools. The goal is to expose the structure of these component functions to the user, allowing them to implement their own custom DGPs, selection algorithms, and update algorithms.</p>
 <p>Users are also encouraged to contribute function modules associated with their research projects, facilitating more community interaction.</p>
