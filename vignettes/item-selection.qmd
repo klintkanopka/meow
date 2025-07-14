@@ -180,7 +180,7 @@ my_select_function <- function(pers, item, resp, resp_cur = NULL, adj_mat = NULL
 }
 
 # Use it in simulation
-results <- meow_sim(
+results <- meow(
   select_fun = my_select_function,
   update_fun = update_theta_mle,
   data_loader = data_simple_1pl,

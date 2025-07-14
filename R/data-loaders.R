@@ -1,11 +1,13 @@
 #' Load data from existing files
 #'
-#' `data_existing()` is a wrapper for three separate calls to `read.csv()` that packages the output into the object used by `meow_sim()`.
+#' `data_existing()` is a wrapper for three separate calls to `read.csv()` that packages the output into the object used by `meow()`.
 #'
 #' @param resp_path A file path to a long form .csv file. File should have three columns, `id` which contains a numeric respondent identifier, `item` which contains a numeric item identifier, and resp which contains an item response. Be sure the form of the item response comports with the parameter update functions you choose to use.
 #' @param pers_path A file path to a wide form .csv file that contains true person parameter values, with one person per row. Include a person index column, named `id`. Default column name for unidimensional person ability should be `theta`
 #' @param item_path A file path to a wide form .csv file that contains true item parameter values, with one item per row. Include an item index column, named `item`. Default column names for difficulty should be `b` and default column name for discrimination should be `a`,
 #' @returns A list with three components: A dataframe of item response named `resp`, a dataframe of true person parameters named `pers_tru`, and a dataframe of true item parameters named `item_tru`
+#'
+#' @export
 data_existing <- function(resp_path, pers_path, item_path) {
   out <- list(
     resp = utils::read.csv(resp_path),
@@ -14,6 +16,7 @@ data_existing <- function(resp_path, pers_path, item_path) {
   )
   return(out)
 }
+
 
 #' A default data generation function that simulates normally distributed respondent abilities and item difficulties
 #'
@@ -24,6 +27,7 @@ data_existing <- function(resp_path, pers_path, item_path) {
 #' @param data_seed A random seed for generating reproducible data. This seed is re-initialized at the end of the data generation process
 #' @returns A list with three components: A dataframe of item response named `resp`, a dataframe of true person parameters named `pers_tru`, and a dataframe of true item parameters named `item_tru`
 #'
+#' @export
 #' @importFrom rlang .data
 data_simple_1pl <- function(
   N_persons = 100,

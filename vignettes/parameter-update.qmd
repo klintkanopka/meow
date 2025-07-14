@@ -250,7 +250,7 @@ my_update_function <- function(pers, item, resp, ...) {
 }
 
 # Use it in simulation
-results <- meow_sim(
+results <- meow(
   select_fun = select_max_info,
   update_fun = my_update_function,
   data_loader = data_simple_1pl,

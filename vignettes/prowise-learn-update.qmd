@@ -166,7 +166,7 @@ This implements the paired update mechanism:
 
 ```r
 # Run simulation with Prowise Learn updates
-results <- meow_sim(
+results <- meow(
   select_fun = select_max_info,
   update_fun = update_prowise_learn,
   data_loader = data_simple_1pl,
@@ -224,7 +224,7 @@ update_prowise_learn_custom <- function(theta, diff, resp, K_theta = 0.05, K_bet
 }
 
 # Use with custom learning rates
-results <- meow_sim(
+results <- meow(
   select_fun = select_max_info,
   update_fun = update_prowise_learn_custom,
   data_loader = data_simple_1pl,
@@ -448,7 +448,7 @@ update_prowise_learn_improved <- function(theta, diff, resp) {
 }
 
 # Run simulation
-results <- meow_sim(
+results <- meow(
   select_fun = select_max_info,
   update_fun = update_prowise_learn_improved,
   data_loader = data_simple_1pl,

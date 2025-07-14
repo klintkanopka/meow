@@ -1,27 +1,6 @@
-#' Constructs an item pool adjacency matrix.
-#'
-#' For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within `meow_sim()` calls.
-#'
-#' @param resp_cur A long-form dataframe of observed item responses.
-#' @param pers_tru A dataframe of true respondent abilities.
-#' @param item_tru A dataframe of true item parameters.
-#' @returns An adjacency matrix of type `matrix`.
-construct_adj_mat <- function(resp_cur, pers_tru, item_tru) {
-  resp_mat <- matrix(0, nrow = nrow(pers_tru), ncol = nrow(item_tru))
-  for (k in 1:nrow(resp_cur)) {
-    i <- resp_cur$id[k]
-    j <- resp_cur$item[k]
-    resp_mat[i, j] <- 1
-  }
-  adj_mat <- t(resp_mat) %*% resp_mat
-  rownames(adj_mat) <- colnames(adj_mat) <- paste0('item_', 1:nrow(item_tru))
-  return(adj_mat)
-}
-
-
 #' Conducts a full CAT simulation.
 #'
-#' `meow_sim()` is the core function of this simulation framework and exists to help users compare efficiency tradeoffs across different item selection algorithms, parameter update algorithms, and data generating processes. It takes as arguments an item selection function, a parameter update function, and a data loader function and uses these to carry out a simulation of a full CAT administration. Default behavior is proceed until all items have been administered. Since internal simulation logic checks to see if additional items are being administered, early stopping conditions should be implemented within the item selection functions. Internal parameters are passed around as dataframes for maximum flexibility.
+#' `meow()` is the core function of this simulation framework and exists to help users compare efficiency tradeoffs across different item selection algorithms, parameter update algorithms, and data generating processes. It takes as arguments an item selection function, a parameter update function, and a data loader function and uses these to carry out a simulation of a full CAT administration. Default behavior is proceed until all items have been administered. Since internal simulation logic checks to see if additional items are being administered, early stopping conditions should be implemented within the item selection functions. Internal parameters are passed around as dataframes for maximum flexibility.
 #'
 #' @param select_fun A function that specifies the item selection algorithm.
 #' @param update_fun A function that specifies the parameter update algorithm.
@@ -32,7 +11,9 @@ construct_adj_mat <- function(resp_cur, pers_tru, item_tru) {
 #' @param init A list of initialization values for estimated person and item parameters. Currently accepts a named list with two entities: `pers` and `item`, for initial estimated values of ability and difficulty, respectively. Defaults to `NULL`, which initializes all estimated parameters to zero.
 #' @param fix Which estimated parameters to treat as fixed. Currently defaults to `none`, but accepts `pers`, `item`, or `both`.`
 #' @returns A list of four named entities, `results` is a dataframe with one row per iteration of the simulation. It contains one `iter` for the iteration number and two columns per person and item parameter, one for the associated estimated parameter and one for the bias in that estimate. Next is a list of item-item adjacency matrices, contained in `adj_mats`. One matrix is provided per iteration of the simulation, and edge weights are the number of respondents who have responded to each pair of items. Finally, true ability and difficulty dataframes are returned in `pers_tru` and `item_tru`.
-meow_sim <- function(
+#'
+#' @export
+meow <- function(
   select_fun,
   update_fun,
   data_loader,

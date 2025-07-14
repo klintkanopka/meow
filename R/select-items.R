@@ -8,6 +8,8 @@
 #' @param resp_cur A long-form dataframe of administered item responses.
 #' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
 #' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#'
+#' @export
 #' @importFrom rlang .data
 select_sequential <- function(
   pers,
@@ -30,6 +32,7 @@ select_sequential <- function(
   return(resp_new)
 }
 
+
 #' Item selection function that delivers an item an item drawn at random from the item bank to each respondent.
 #'
 #' Each respondent has their own next item drawn at random from the remaining items.
@@ -41,6 +44,8 @@ select_sequential <- function(
 #' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
 #' @param select_seed A random seed used only for item selection. Cleared each time this function is run.
 #' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#'
+#' @export
 #' @importFrom rlang .data
 select_random <- function(
   pers,
@@ -68,6 +73,7 @@ select_random <- function(
   return(resp_new)
 }
 
+
 #' Item selection function that delivers the the remaining item with the highest information.
 #'
 #' Information calculation is based upon current parameter estimates and a 2PL item response function.
@@ -78,6 +84,8 @@ select_random <- function(
 #' @param resp_cur A long-form dataframe of administered item responses.
 #' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
 #' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#'
+#' @export
 #' @importFrom rlang .data
 select_max_info <- function(
   pers,
@@ -120,6 +128,8 @@ select_max_info <- function(
 #' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
 #' @param n_candidates A parameter that allows the assembly of a pool of $N$ farthest items, before selecting the next item according to maximum information. Allows users to balance exposure patterns away from increased network density and toward more efficient estimation.
 #' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#'
+#' @export
 #' @importFrom rlang .data
 select_max_distance <- function(
   pers,

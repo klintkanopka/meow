@@ -10,7 +10,7 @@ knitr:
     comment: '#>'
 ---
 
-The `meow` framework is built around a central function, `meow_sim()`. This function relies on three other ingredients to build your simulation:
+The `meow` framework is built around a central function, `meow()`. This function relies on three other ingredients to build your simulation:
 1. A _data loader_ that either loads or generates data to perform the simulation on
 2. An _item selection function_ that implements the algorithm that selects the next item for your respondents
 3. A _parameter update function_ that implements the algorithm that is used to update the internal person and item parameters
@@ -42,7 +42,7 @@ Interestingly enough, there are no required inputs for a data loader function, a
 
 The arguments `theta`, `diff`, `resp`, `resp_cur`, `adj_mat`, and `select_seed` should not be used, as these are standard arguments used in the item selection and parameter update functions.
 
-Besides these, any argument names are generally fine and can be passed directly to your data loader through as named arguments to the `meow_sim()` function.
+Besides these, any argument names are generally fine and can be passed directly to your data loader through as named arguments to the `meow()` function.
 
 
 ## Return values

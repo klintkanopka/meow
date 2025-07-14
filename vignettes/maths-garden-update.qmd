@@ -137,7 +137,7 @@ For each item, this:
 
 ```r
 # Run simulation with Maths Garden updates
-results <- meow_sim(
+results <- meow(
   select_fun = select_max_info,
   update_fun = update_maths_garden,
   data_loader = data_simple_1pl,
@@ -179,7 +179,7 @@ update_maths_garden_custom <- function(theta, diff, resp, K_theta = 0.05, K_beta
 }
 
 # Use with custom learning rates
-results <- meow_sim(
+results <- meow(
   select_fun = select_max_info,
   update_fun = update_maths_garden_custom,
   data_loader = data_simple_1pl,
@@ -336,7 +336,7 @@ update_maths_garden_improved <- function(theta, diff, resp) {
 }
 
 # Run simulation
-results <- meow_sim(
+results <- meow(
   select_fun = select_max_info,
   update_fun = update_maths_garden_improved,
   data_loader = data_simple_1pl,

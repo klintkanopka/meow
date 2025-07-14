@@ -6,6 +6,8 @@
 #' @param item A dataframe of item parameter values.
 #' @param resp A long-form dataframe of only observed item responses.
 #' @returns An list of three objects, only one of which is updated from the function input: `pers` is a dataframe with updated respondent parameter estimates, `item` is the dataframe of item parameter values. `resp_cur` is the dataframe of observed item responses.
+#'
+#' @export
 update_theta_mle <- function(pers, item, resp) {
   # unidimensional 2PL MLE estimation of ability, treating item params as fixed
   theta_mle <- function(pers, item, resp) {
@@ -52,6 +54,8 @@ update_theta_mle <- function(pers, item, resp) {
 #' @param K_theta User supplied learning rate for person ability updates. Defaults to 0.1
 #' @param K_b User supplied learning rate for item difficulty updates. Defaults to 0.1
 #' @returns An list of three objects, two of which are updated from the function input: `pers` is a dataframe with updated respondent parameter estimates, `item` is the dataframe of updated item parameter estimates. `resp_cur` is the dataframe of observed item responses.
+#'
+#' @export
 update_maths_garden <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
   # Implement the update rule from the maths garden paper
   # Theta_hat_j = theta_j + K_j (S_ij - E(S_ij))
@@ -104,6 +108,8 @@ update_maths_garden <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
 #' @param K_theta User supplied learning rate for person ability updates. Defaults to 0.1
 #' @param K_b User supplied learning rate for item difficulty updates. Defaults to 0.1
 #' @returns An list of three objects, two of which are updated from the function input: `pers` is a dataframe with updated respondent parameter estimates, `item` is the dataframe of updated item parameter estimates. `resp_cur` is the dataframe of observed item responses.
+#'
+#' @export
 update_prowise_learn <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
   # Implement the update rule from the Prowise Learn paper with paired item updates
   # to prevent rating drift

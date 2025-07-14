@@ -17,5 +17,5 @@ data_existing(resp_path, pers_path, item_path)
 A list with three components: A dataframe of item response named \code{resp}, a dataframe of true person parameters named \code{pers_tru}, and a dataframe of true item parameters named \code{item_tru}
 }
 \description{
-\code{data_existing()} is a wrapper for three separate calls to \code{read.csv()} that packages the output into the object used by \code{meow_sim()}.
+\code{data_existing()} is a wrapper for three separate calls to \code{read.csv()} that packages the output into the object used by \code{meow()}.
 }
