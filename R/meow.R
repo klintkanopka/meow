@@ -116,8 +116,8 @@ meow <- function(
       )
     }
 
-    pers_est <- out$pers_est
-    item_est <- out$item_est
+    pers_est <- out$pers
+    item_est <- out$item
     resp_cur <- out$resp_cur
 
     adj_mat <- construct_adj_mat(resp_cur, pers_tru, item_tru)

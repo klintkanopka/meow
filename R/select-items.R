@@ -131,7 +131,7 @@ select_max_info <- function(
 #'
 #' @export
 #' @importFrom rlang .data
-select_max_distance <- function(
+select_max_dist <- function(
   pers,
   item,
   resp,
