@@ -37,9 +37,9 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
     <li><a class="dropdown-item" href="../articles/item-selection.html">Item Selection Functions</a></li>
-    <li><a class="dropdown-item" href="../articles/maths-garden-update.html">Maths Garden Update Algorithm</a></li>
     <li><a class="dropdown-item" href="../articles/parameter-update.html">Parameter Update Functions</a></li>
-    <li><a class="dropdown-item" href="../articles/prowise-learn-update.html">Prowise Learn Update Algorithm</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
       </ul>
@@ -106,7 +106,7 @@
 </h2>
 <section class="level2"><h3 id="sequential-selection">Sequential Selection<a class="anchor" aria-label="anchor" href="#sequential-selection"></a>
 </h3>
-<p>The <code>select_sequential()</code> function selects items in a predetermined order:</p>
+<p>The <code><a href="../reference/select_sequential.html">select_sequential()</a></code> function selects items in a predetermined order:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select_sequential</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
 <span>  <span class="va">pers</span>,</span>
@@ -131,7 +131,7 @@
 <p>This function: 1. For the first iteration, selects the first 5 items for all respondents 2. For subsequent iterations, selects the next unadministered item for each respondent 3. Uses <code><a href="https://dplyr.tidyverse.org/reference/filter-joins.html" class="external-link">dplyr::anti_join()</a></code> to find responses not yet included 4. Uses <code><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">dplyr::slice_head()</a></code> to select one item per respondent</p>
 </section><section class="level2"><h3 id="random-selection">Random Selection<a class="anchor" aria-label="anchor" href="#random-selection"></a>
 </h3>
-<p>The <code>select_random()</code> function selects items randomly:</p>
+<p>The <code><a href="../reference/select_random.html">select_random()</a></code> function selects items randomly:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select_random</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
 <span>  <span class="va">pers</span>,</span>
@@ -159,7 +159,7 @@
 <p>This function: 1. Sets a random seed for reproducibility 2. For the first iteration, selects the first 5 items 3. For subsequent iterations, randomly selects one unadministered item per respondent 4. Uses <code><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">dplyr::slice_sample()</a></code> for random selection 5. Clears the seed to avoid affecting downstream processes</p>
 </section><section class="level2"><h3 id="maximum-information-selection">Maximum Information Selection<a class="anchor" aria-label="anchor" href="#maximum-information-selection"></a>
 </h3>
-<p>The <code>select_max_info()</code> function selects items that maximize information at the current ability estimate:</p>
+<p>The <code><a href="../reference/select_max_info.html">select_max_info()</a></code> function selects items that maximize information at the current ability estimate:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select_max_info</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
 <span>  <span class="va">pers</span>,</span>
