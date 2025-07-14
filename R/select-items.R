@@ -169,22 +169,26 @@ select_max_dist <- function(
       resp,
       resp_cur,
       by = c('id', 'item', 'resp')
-    ) |>
-      dplyr::rowwise() |>
-      dplyr::mutate(
-        distance = get_distance(.data$id, .data$item, dist_mat, local_items)
-      ) |>
-      dplyr::ungroup() |>
-      dplyr::slice_max(.data$distance, n = n_candidates, by = .data$id) |>
-      dplyr::left_join(pers, by = 'id') |>
-      dplyr::left_join(item, by = 'item') |>
-      dplyr::mutate(
-        info = .data$a^2 *
-          stats::plogis(.data$a * (.data$theta - .data$b)) *
-          (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
-      ) |>
-      dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
-      dplyr::select(.data$id, .data$item, .data$resp)
+    )
+
+    if (nrow(resp_new) > 0) {
+      resp_new <- resp_new |>
+        dplyr::rowwise() |>
+        dplyr::mutate(
+          distance = get_distance(.data$id, .data$item, dist_mat, local_items)
+        ) |>
+        dplyr::ungroup() |>
+        dplyr::slice_max(.data$distance, n = n_candidates, by = .data$id) |>
+        dplyr::left_join(pers, by = 'id') |>
+        dplyr::left_join(item, by = 'item') |>
+        dplyr::mutate(
+          info = .data$a^2 *
+            stats::plogis(.data$a * (.data$theta - .data$b)) *
+            (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
+        ) |>
+        dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
+        dplyr::select(.data$id, .data$item, .data$resp)
+    }
     resp_new <- dplyr::bind_rows(resp_cur, resp_new)
   }
   return(resp_new)

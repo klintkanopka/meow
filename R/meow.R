@@ -74,11 +74,13 @@ meow <- function(
       temp_resp <- do.call(
         select_fun,
         c(
-          pers = pers_est,
-          item = item_est,
-          resp = resp,
-          resp_cur = resp_cur,
-          adj_mat = adj_mat,
+          list(
+            pers = pers_est,
+            item = item_est,
+            resp = resp,
+            resp_cur = resp_cur,
+            adj_mat = adj_mat
+          ),
           select_args
         )
       )
@@ -99,9 +101,11 @@ meow <- function(
       out <- do.call(
         update_fun,
         c(
-          pers = pers_est,
-          item = item_est,
-          resp = temp_resp,
+          list(
+            pers = pers_est,
+            item = item_est,
+            resp = temp_resp
+          ),
           update_args
         )
       )
