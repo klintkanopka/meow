@@ -1,6 +1,7 @@
 url: http://klintkanopka.com/meow/
 template:
   bootstrap: 5
+  light-switch: true
 
 articles:
 - title: Building Blocks
@@ -16,3 +17,4 @@ articles:
   contents:
   - maths-garden-update
   - prowise-learn-update
+
