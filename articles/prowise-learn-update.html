@@ -209,7 +209,7 @@
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run simulation with Prowise Learn updates</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow_sim.html">meow_sim</a></span><span class="op">(</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
 <span>  select_fun <span class="op">=</span> <span class="va">select_max_info</span>,</span>
 <span>  update_fun <span class="op">=</span> <span class="va">update_prowise_learn</span>,</span>
 <span>  data_loader <span class="op">=</span> <span class="va">data_simple_1pl</span>,</span>
@@ -264,7 +264,7 @@
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Use with custom learning rates</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow_sim.html">meow_sim</a></span><span class="op">(</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
 <span>  select_fun <span class="op">=</span> <span class="va">select_max_info</span>,</span>
 <span>  update_fun <span class="op">=</span> <span class="va">update_prowise_learn_custom</span>,</span>
 <span>  data_loader <span class="op">=</span> <span class="va">data_simple_1pl</span>,</span>
@@ -496,7 +496,7 @@
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Run simulation</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow_sim.html">meow_sim</a></span><span class="op">(</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
 <span>  select_fun <span class="op">=</span> <span class="va">select_max_info</span>,</span>
 <span>  update_fun <span class="op">=</span> <span class="va">update_prowise_learn_improved</span>,</span>
 <span>  data_loader <span class="op">=</span> <span class="va">data_simple_1pl</span>,</span>
