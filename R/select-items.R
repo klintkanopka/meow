@@ -193,3 +193,138 @@ select_max_dist <- function(
   }
   return(resp_new)
 }
+
+#' Alternative edge weight functions for network-based item selection
+#'
+#' These functions provide different approaches to calculating edge weights from the adjacency matrix.
+#'
+#' @param adj_mat The adjacency matrix where entry [i,j] is the number of co-responses between items i and j
+#' @param alpha Smoothing parameter for avoiding division by zero
+#' @param beta Exponent for power transformation
+#' @returns A matrix of edge weights for use in distance calculations
+#'
+#' @export
+edge_weight_inverse <- function(adj_mat, alpha = 1) {
+  # Original approach: inverse of co-response count
+  # Higher co-responses = lower weights = shorter distances
+  return(1 / (adj_mat + alpha))
+}
+
+#' @rdname edge_weight_inverse
+#' @export
+edge_weight_negative_log <- function(adj_mat, alpha = 1) {
+  # Negative log transformation
+  # Higher co-responses = lower weights = shorter distances
+  return(-log(adj_mat + alpha))
+}
+
+#' @rdname edge_weight_inverse
+#' @export
+edge_weight_linear <- function(adj_mat, max_co_responses = NULL) {
+  # Linear transformation: higher co-responses = higher weights = longer distances
+  # This inverts the logic: items that are frequently answered together are "farther apart"
+  if (is.null(max_co_responses)) {
+    max_co_responses <- max(adj_mat)
+  }
+  return(adj_mat / max_co_responses)
+}
+
+#' @rdname edge_weight_inverse
+#' @export
+edge_weight_power <- function(adj_mat, beta = 0.5, alpha = 1) {
+  # Power transformation with smoothing
+  # beta < 1: reduces the impact of high co-response counts
+  # beta > 1: amplifies the impact of high co-response counts
+  return((adj_mat + alpha)^beta)
+}
+
+#' @rdname edge_weight_inverse
+#' @export
+edge_weight_exponential <- function(adj_mat, lambda = 0.1, alpha = 1) {
+  # Exponential decay: higher co-responses = much lower weights
+  return(exp(-lambda * (adj_mat + alpha)))
+}
+
+#' Enhanced network-based item selection with configurable edge weights
+#'
+#' This function extends `select_max_dist` with flexible edge weight calculations.
+#'
+#' @param pers A dataframe of current respondent ability estimates.
+#' @param item A dataframe of current item parameter estimates.
+#' @param resp A long-form dataframe of all potential pre-simulated item responses.
+#' @param resp_cur A long-form dataframe of administered item responses.
+#' @param adj_mat An item-item adjacency matrix.
+#' @param n_candidates Number of farthest items to consider before applying information criterion.
+#' @param edge_weight_fun Function to calculate edge weights from adjacency matrix.
+#' @param edge_weight_args Additional arguments for the edge weight function.
+#' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#'
+#' @export
+#' @importFrom rlang .data
+select_max_dist_enhanced <- function(
+  pers,
+  item,
+  resp,
+  resp_cur = NULL,
+  adj_mat = NULL,
+  n_candidates = 1,
+  edge_weight_fun = edge_weight_inverse,
+  edge_weight_args = list()
+) {
+  if (is.null(resp_cur)) {
+    return(resp[resp$item <= 5, ])
+  } else {
+    # Calculate edge weights using the specified function
+    edge_weights <- do.call(edge_weight_fun, c(list(adj_mat = adj_mat), edge_weight_args))
+    
+    # Compute distance matrix using Floyd-Warshall
+    dist_mat <- Rfast::floyd(edge_weights)
+
+    local_items <- resp_cur |>
+      dplyr::select(.data$id, .data$item) |>
+      dplyr::group_by(.data$id) |>
+      dplyr::mutate(seq = 1:dplyr::n()) |>
+      dplyr::ungroup() |>
+      tidyr::pivot_wider(
+        id_cols = .data$id,
+        names_from = .data$seq,
+        names_prefix = 'item_',
+        values_from = .data$item
+      ) |>
+      dplyr::arrange(.data$id) |>
+      dplyr::select(-.data$id) |>
+      as.matrix()
+
+    get_distance <- function(id, item, dist_mat, local_items) {
+      dist <- min(dist_mat[local_items[id, ], item])
+      return(dist)
+    }
+
+    resp_new <- dplyr::anti_join(
+      resp,
+      resp_cur,
+      by = c('id', 'item', 'resp')
+    )
+
+    if (nrow(resp_new) > 0) {
+      resp_new <- resp_new |>
+        dplyr::rowwise() |>
+        dplyr::mutate(
+          distance = get_distance(.data$id, .data$item, dist_mat, local_items)
+        ) |>
+        dplyr::ungroup() |>
+        dplyr::slice_max(.data$distance, n = n_candidates, by = .data$id) |>
+        dplyr::left_join(pers, by = 'id') |>
+        dplyr::left_join(item, by = 'item') |>
+        dplyr::mutate(
+          info = .data$a^2 *
+            stats::plogis(.data$a * (.data$theta - .data$b)) *
+            (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
+        ) |>
+        dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
+        dplyr::select(.data$id, .data$item, .data$resp)
+    }
+    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+  }
+  return(resp_new)
+}
