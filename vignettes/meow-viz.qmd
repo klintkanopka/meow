@@ -4,7 +4,7 @@ author: "Klint Kanopka"
 format: pdf
 ---
 
-```{r}
+```r
 #| output: false
 
 # remotes::install_github("klintkanopka/meow")
@@ -17,7 +17,7 @@ library(tidyverse)
 
 To do a simulation with no exposure controls, we'll use the built-in item selection method, `select_max_info()`. To conduct a sample simulation using data generated from a 1PL and MLE based updates of $\hat{\theta}$, you can run:
 
-```{r}
+```r
 out_none <- meow(
   select_fun = select_max_info,
   update_fun = update_theta_mle,
@@ -33,14 +33,14 @@ Let's look at some common ways you might want to visualize the results of your s
 
 First, we'll extract just the results dataframe. Since we'll be combining this with an exposure control method later, I'll also label it
 
-```{r}
+```r
 results_none <- out_none$results |>
   mutate(control = 'None')
 ```
 
 Next we want to extract the bias in the person abilities. We can also grab the current estimates if we like. Just change the suffix you select from `_bias` to `_est`. 
 
-```{r}
+```r
 results_none |>
   select(iter, control, starts_with('pers_')) |>
   select(iter, control, ends_with('_bias')) |>
@@ -60,7 +60,7 @@ results_none |>
 
 This is more useful when comparing across methods, though. Now let's take a look at how individual parameter trajectories evolve over time. Again, we'll track the bias.
 
-```{r}
+```r
 results_none |>
   select(iter, control, starts_with('pers_')) |>
   select(iter, control, ends_with('_bias')) |>
@@ -83,7 +83,7 @@ This is quite similar to the unrestricted case, it just involves two additional 
 
 The diagonal of the adjacency matrix has the exposure counts, so from that we quickly compute exposure rates and then filter potential solutions based upon that.
 
-```{r}
+```r
 select_rest <- function(
   pers,
   item,
@@ -124,7 +124,7 @@ select_rest <- function(
 
 To pass an exposure rate to the item selection function that's different from the default value, we can conduct a simulation that looks like this:
 
-```{r}
+```r
 #| warning: false
 out_rest <- meow(
   select_fun = select_rest,
@@ -138,7 +138,7 @@ out_rest <- meow(
 
 Now let's say we want to compare the RMSE in estimated abilities over time for the two methods. We can bind together the rows for our two outputs (making sure that we've labeled our control method) and plot as before:
 
-```{r}
+```r
 
 results_rest <- out_rest$results |>
   mutate(control = 'Restricted')
@@ -168,7 +168,7 @@ results |>
 
 Here we can see that, as it turns out, restricting item exposure doesn't hurt our RMSE too much. What about the individual parameter trajectories? Here we'll separate the two using faceting. We'll also only look at these trajectories over the first twenty items.
 
-```{r}
+```r
 results |>
   select(iter, control, starts_with('pers_')) |>
   select(iter, control, ends_with('_bias')) |>
