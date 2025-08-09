@@ -5,12 +5,13 @@ template:
 
 articles:
 - title: Building Blocks
-  desc:  The structure and design of the core compnents of the `meow` framework
+  desc:  The structure and design of the core components of the `meow` framework
   navbar: ~
   contents:
   - data-loaders
   - item-selection
   - parameter-update
+  - meow-viz
 
 - title: Implementations
   desc: Deeper dives into specific implementations
