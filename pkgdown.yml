@@ -5,9 +5,11 @@ articles:
   data-loaders: data-loaders.html
   item-selection: item-selection.html
   maths-garden-update: maths-garden-update.html
+  meow-viz: meow-viz.html
+  network-item-selection: network-item-selection.html
   parameter-update: parameter-update.html
   prowise-learn-update: prowise-learn-update.html
-last_built: 2025-07-14T22:16Z
+last_built: 2025-08-09T18:09Z
 urls:
   reference: http://klintkanopka.com/meow/reference
   article: http://klintkanopka.com/meow/articles
