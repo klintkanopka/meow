@@ -4,9 +4,10 @@ author: "Klint Kanopka"
 format: pdf
 ---
 
-```r
-#| output: false
 
+This vignette is going to take you through conducting two simulations and then comparing the results with some visualizations. We'll use `ggplot2` to make the visuals here, but I'm not going to tell you how to live. The other package you'll need, obviously, is `meow`.
+
+```r
 # remotes::install_github("klintkanopka/meow")
 library(meow)
 library(tidyverse)
@@ -125,7 +126,6 @@ select_rest <- function(
 To pass an exposure rate to the item selection function that's different from the default value, we can conduct a simulation that looks like this:
 
 ```r
-#| warning: false
 out_rest <- meow(
   select_fun = select_rest,
   update_fun = update_theta_mle,
