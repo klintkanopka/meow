@@ -85,7 +85,8 @@
 <section class="section level2"><h2 id="writing-your-own-data-loaders">Writing your own data loaders<a class="anchor" aria-label="anchor" href="#writing-your-own-data-loaders"></a>
 </h2>
 <p>Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very basic data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let’s start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the <code>meow</code> ecosystem.</p>
-<pre><code><span><span class="va">data_existing</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data_existing</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
 <span>  <span class="va">resp_path</span> <span class="op">=</span> <span class="st">'data/sample-resp.csv'</span>,</span>
 <span>  <span class="va">theta_path</span> <span class="op">=</span> <span class="st">'data/true-sample-theta.rds'</span>,</span>
 <span>  <span class="va">diff_path</span> <span class="op">=</span> <span class="st">'data/true-sample-diff.rds'</span></span>
@@ -96,7 +97,7 @@
 <span>    diff_tru <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">diff_path</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre>
+<span><span class="op">}</span></span></code></pre></div>
 <section class="level2"><h3 id="function-arguments">Function arguments<a class="anchor" aria-label="anchor" href="#function-arguments"></a>
 </h3>
 <p>Interestingly enough, there are no required inputs for a data loader function, as it’s the first thing that gets called in an internal <code>meow</code> simulation. Your data loader can have, theoretically, whatever arguments you like with only a few exceptions.</p>
@@ -119,7 +120,8 @@
 </section></section></section><section class="section level2"><h2 id="implementing-a-1pl-data-loader">Implementing a 1PL data loader<a class="anchor" aria-label="anchor" href="#implementing-a-1pl-data-loader"></a>
 </h2>
 <p>Now let’s look at our default 1PL based data loader. The code for it is shown below:</p>
-<pre><code><span><span class="va">data_default</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">N_persons</span> <span class="op">=</span> <span class="fl">100</span>, <span class="va">N_items</span> <span class="op">=</span> <span class="fl">50</span>, <span class="va">data_seed</span> <span class="op">=</span> <span class="fl">242424</span><span class="op">)</span> <span class="op">{</span></span>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data_default</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">N_persons</span> <span class="op">=</span> <span class="fl">100</span>, <span class="va">N_items</span> <span class="op">=</span> <span class="fl">50</span>, <span class="va">data_seed</span> <span class="op">=</span> <span class="fl">242424</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># note default behavior is fixed seed to ensure data consistency across runs</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="va">data_seed</span><span class="op">)</span></span>
 <span></span>
@@ -154,7 +156,7 @@
 <span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>resp <span class="op">=</span> <span class="va">resp</span>, theta_tru <span class="op">=</span> <span class="va">theta_tru</span>, diff_tru <span class="op">=</span> <span class="va">diff_tru</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre>
+<span><span class="op">}</span></span></code></pre></div>
 <p>This function simulates data according to a very simple and inflexible DGP. It takes a number of respondents, <code>N_persons</code> and a number of items, <code>N_items</code>, and does the following:</p>
 <ol type="1">
 <li>Sets a seed according to the supplied <code>data_seed</code>.</li>

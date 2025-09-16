@@ -99,7 +99,7 @@
 <p>Let’s look at some common ways you might want to visualize the results of your simulations. One thing to note, is that the last line of <code>out_info$results</code> is going to have the final bias values for each parameter in the simulation, so we’ll focus on examining their evolution over time.</p>
 <section class="level2"><h3 id="root-mean-squared-error-rmse-of-person-abilities">Root Mean Squared Error (RMSE) of Person Abilities<a class="anchor" aria-label="anchor" href="#root-mean-squared-error-rmse-of-person-abilities"></a>
 </h3>
-<p>First, we’ll extract just the results dataframe. Since we’ll be combining this with an exposure control method later, I’ll also label it</p>
+<p>First, we’ll extract just the results dataframe. Since we’ll be combining this with an exposure control method later, I’ll also label it:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results_none</span> <span class="op">&lt;-</span> <span class="va">out_none</span><span class="op">$</span><span class="va">results</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>control <span class="op">=</span> <span class="st">'None'</span><span class="op">)</span></span></code></pre></div>
@@ -120,6 +120,10 @@
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">'bottom'</span><span class="op">)</span></span></code></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure><p><img src="img/meow-viz-01.png"></p>
+<figcaption>Figure 1</figcaption></figure>
+</div>
 <p>This is more useful when comparing across methods, though. Now let’s take a look at how individual parameter trajectories evolve over time. Again, we’ll track the bias.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results_none</span> <span class="op">|&gt;</span></span>
@@ -135,6 +139,10 @@
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">'bottom'</span><span class="op">)</span></span></code></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure><p><img src="img/meow-viz-02.png"></p>
+<figcaption>Figure 2</figcaption></figure>
+</div>
 </section></section><section class="section level2"><h2 id="restricting-item-exposure">Restricting Item Exposure<a class="anchor" aria-label="anchor" href="#restricting-item-exposure"></a>
 </h2>
 <p>This is quite similar to the unrestricted case, it just involves two additional steps and an additional parameter that needs to get passed to the selection function. First we need to compute exposure rates for all administered items, and then second, we need to drop potential items that are above the current exposure rate.</p>
@@ -188,15 +196,13 @@
 <span><span class="op">)</span></span></code></pre></div>
 <p>Now let’s say we want to compare the RMSE in estimated abilities over time for the two methods. We can bind together the rows for our two outputs (making sure that we’ve labeled our control method) and plot as before:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">results_rest</span> <span class="op">&lt;-</span> <span class="va">out_rest</span><span class="op">$</span><span class="va">results</span> <span class="op">|&gt;</span></span>
+<code class="sourceCode R"><span><span class="va">results_rest</span> <span class="op">&lt;-</span> <span class="va">out_rest</span><span class="op">$</span><span class="va">results</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>control <span class="op">=</span> <span class="st">'Restricted'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bind_rows</span><span class="op">(</span></span>
 <span>  <span class="va">results_none</span>,</span>
 <span>  <span class="va">results_rest</span></span>
 <span><span class="op">)</span></span>
-<span></span>
 <span></span>
 <span><span class="va">results</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">select</span><span class="op">(</span><span class="va">iter</span>, <span class="va">control</span>, <span class="fu">starts_with</span><span class="op">(</span><span class="st">'pers_'</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -213,6 +219,10 @@
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">'bottom'</span><span class="op">)</span></span></code></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure><p><img src="img/meow-viz-03.png"></p>
+<figcaption>Figure 3</figcaption></figure>
+</div>
 <p>Here we can see that, as it turns out, restricting item exposure doesn’t hurt our RMSE too much. What about the individual parameter trajectories? Here we’ll separate the two using faceting. We’ll also only look at these trajectories over the first twenty items.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">|&gt;</span></span>
@@ -230,6 +240,10 @@
 <span>  <span class="fu">facet_grid</span><span class="op">(</span><span class="va">control</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">'bottom'</span><span class="op">)</span></span></code></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure><p><img src="img/meow-viz-04.png"></p>
+<figcaption>Figure 4</figcaption></figure>
+</div>
 <p>Early on, the trajectories are identical because exposure controls haven’t yet kicked in. We didn’t see much difference in the RMSE plot, and here we continue to not see much difference.</p>
 </section><section class="section level2"><h2 id="visualizing-the-adjacency-matrix">Visualizing the Adjacency Matrix<a class="anchor" aria-label="anchor" href="#visualizing-the-adjacency-matrix"></a>
 </h2>
