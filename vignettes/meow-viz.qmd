@@ -220,7 +220,7 @@ Next we collapse these into a single dynamic network object. We do this with a c
 dyn_rest <- networkDynamic(network.list = rest_nets)
 ```
 
-Finally, we render the movie. This will open a browser window with an interactive movie. Here you can click on specific nodes to get more information about them or follow them over time, move forward and backward through time, and also zoom in and out. Here I've also added some information about item difficulty. Items with difficulties below zero (easier) are colored blue, while harder items are colored red. Additionally, the size of the nodes is larger the farther they are from zero. This makes it quick to identify the easiest and hardest items as the largest nodes. A good thing to do is click on the hardest item (the largest red node) and see what it gets connected to over time.
+Finally, we render the movie. This will, by default, open a browser window with an interactive movie. Here we've embedded an HTML object. In it, you can click on specific nodes to get more information about them or follow them over time, move forward and backward through time, and also zoom in and out. We've also added some information about item difficulty. Items with difficulties below zero (easier) are colored blue, while harder items are colored red. Additionally, the size of the nodes is larger the farther they are from zero. This makes it quick to identify the easiest and hardest items as the largest nodes. An illustrative thing to do is click on the hardest item (the largest red node) and see what it gets connected to over time.
 
 ```r
 render.d3movie(
