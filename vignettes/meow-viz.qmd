@@ -38,7 +38,7 @@ Let's look at some common ways you might want to visualize the results of your s
 
 ## Root Mean Squared Error (RMSE) of Person Abilities
 
-First, we'll extract just the results dataframe. Since we'll be combining this with an exposure control method later, I'll also label it
+First, we'll extract just the results dataframe. Since we'll be combining this with an exposure control method later, I'll also label it:
 
 ```r
 results_none <- out_none$results |>
@@ -65,6 +65,8 @@ results_none |>
   theme(legend.position = 'bottom')
 ```
 
+![Figure 1](img/meow-viz-01.png)
+
 This is more useful when comparing across methods, though. Now let's take a look at how individual parameter trajectories evolve over time. Again, we'll track the bias.
 
 ```r
@@ -83,6 +85,7 @@ results_none |>
   theme(legend.position = 'bottom')
 ```
 
+![Figure 2](img/meow-viz-02.png)
 
 # Restricting Item Exposure
 
@@ -145,7 +148,6 @@ out_rest <- meow(
 Now let's say we want to compare the RMSE in estimated abilities over time for the two methods. We can bind together the rows for our two outputs (making sure that we've labeled our control method) and plot as before:
 
 ```r
-
 results_rest <- out_rest$results |>
   mutate(control = 'Restricted')
 
@@ -153,7 +155,6 @@ results <- bind_rows(
   results_none,
   results_rest
 )
-
 
 results |>
   select(iter, control, starts_with('pers_')) |>
@@ -171,6 +172,8 @@ results |>
   theme_minimal() +
   theme(legend.position = 'bottom')
 ```
+
+![Figure 3](img/meow-viz-03.png)
 
 Here we can see that, as it turns out, restricting item exposure doesn't hurt our RMSE too much. What about the individual parameter trajectories? Here we'll separate the two using faceting. We'll also only look at these trajectories over the first twenty items.
 
@@ -191,6 +194,8 @@ results |>
   theme_minimal() +
   theme(legend.position = 'bottom')
 ```
+
+![Figure 4](img/meow-viz-04.png)
 
 Early on, the trajectories are identical because exposure controls haven't yet kicked in. We didn't see much difference in the RMSE plot, and here we continue to not see much difference.
 

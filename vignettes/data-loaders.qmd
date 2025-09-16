@@ -21,7 +21,7 @@ In this vignette, we will talk about what data loaders are, how to use the ones 
 
 Data loaders are where you encode your data generating process (DGP) for a simulation. We provide two very basic data loaders, one that loads pre-generated parameters and responses from files, and one that generates data according to a 1PL IRT model. Let's start with the loader that reads existing data to take a look at the core features any data loader function needs to participate cooperatively in the `meow` ecosystem.
 
-```
+```r
 data_existing <- function(
   resp_path = 'data/sample-resp.csv',
   theta_path = 'data/true-sample-theta.rds',
@@ -69,7 +69,7 @@ In the near future, this will be re-implemented as a dataframe to more easily al
 
 Now let's look at our default 1PL based data loader. The code for it is shown below:
 
-```
+```r
 data_default <- function(N_persons = 100, N_items = 50, data_seed = 242424) {
   # note default behavior is fixed seed to ensure data consistency across runs
   set.seed(data_seed)
