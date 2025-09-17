@@ -58,37 +58,42 @@ This is the 1-parameter logistic (1PL) item response model, also known as the Ra
 The `update_maths_garden()` function implements this algorithm:
 
 ```r
-update_maths_garden <- function(theta, diff, resp) {
-  # Calculate expected probabilities using logistic function
-  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+update_maths_garden <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
+  # Implement the update rule from the maths garden paper
+  # Theta_hat_j = theta_j + K_j (S_ij - E(S_ij))
+  # Beta_hat_i = beta_i + K_i(E(S_ij)-S_ij)
+  # where S_ij is the observed score and E(S_ij) is the expected probability
 
-  # Learning rates (K values) - these could be tuned
-  K_theta <- 0.1 # Learning rate for ability
-  K_beta <- 0.1  # Learning rate for difficulty
+  # Calculate expected probabilities using logistic function
+  E_Sij <- stats::plogis(pers$theta[resp$id] - item$b[resp$item])
 
   # Update theta (ability) for each person
-  theta_updated <- theta
+  theta_updated <- pers$theta
   for (j in unique(resp$id)) {
     # Get responses for person j
     resp_j <- resp[resp$id == j, ]
     # Calculate update term
     update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
-    theta_updated[j] <- theta[j] + update_term
+    theta_updated[j] <- pers$theta[j] + update_term
   }
 
+  pers$theta <- theta_updated
+
   # Update beta (difficulty) for each item
-  beta_updated <- diff
+  b_updated <- item$b
   for (i in unique(resp$item)) {
     # Get responses for item i
     resp_i <- resp[resp$item == i, ]
     # Calculate update term
-    update_term <- K_beta * sum(E_Sij[resp$item == i] - resp_i$resp)
-    beta_updated[i] <- diff[i] + update_term
+    update_term <- K_b * sum(E_Sij[resp$item == i] - resp_i$resp)
+    b_updated[i] <- item$b[i] + update_term
   }
 
+  item$b <- b_updated
+
   out <- list(
-    theta_est = theta_updated,
-    diff_est = beta_updated,
+    pers = pers,
+    item = item,
     resp_cur = resp
   )
   return(out)

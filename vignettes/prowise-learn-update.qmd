@@ -69,14 +69,13 @@ The paired update mechanism addresses rating drift by:
 The `update_prowise_learn()` function implements this algorithm:
 
 ```r
-update_prowise_learn <- function(theta, diff, resp) {
-  # Initialize updated parameters
-  theta_updated <- theta
-  diff_updated <- diff
+update_prowise_learn <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
+  # Implement the update rule from the Prowise Learn paper with paired item updates
+  # to prevent rating drift
 
-  # Learning rates (K values) - these could be tuned
-  K_theta <- 0.1 # Learning rate for ability
-  K_beta <- 0.1  # Learning rate for difficulty
+  # Initialize updated parameters
+  theta_updated <- theta <- pers$theta
+  diff_updated <- diff <- pers$b
 
   # Calculate expected probabilities for all responses
   E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
@@ -102,7 +101,7 @@ update_prowise_learn <- function(theta, diff, resp) {
         s_prev <- resp$resp[idx_prev]
         e_now <- E_Sij[idx_now]
         e_prev <- E_Sij[idx_prev]
-        kappa <- 0.5 * (K_beta * (s_now - e_now) - K_beta * (s_prev - e_prev))
+        kappa <- 0.5 * (K_b * (s_now - e_now) - K_b * (s_prev - e_prev))
         diff_updated[item_now] <- diff_updated[item_now] + kappa
         diff_updated[item_prev] <- diff_updated[item_prev] - kappa
         update_count <- update_count + 1
@@ -111,23 +110,15 @@ update_prowise_learn <- function(theta, diff, resp) {
   }
   cat("Prowise item updates triggered:", update_count, "\n")
 
+  pers$theta <- theta_updated
+  item$b <- diff_updated
+
   out <- list(
-    theta_est = theta_updated,
-    diff_est = diff_updated,
+    pers = pers,
+    item = item,
     resp_cur = resp
   )
   return(out)
-}
-```
-
-## Step-by-Step Breakdown
-
-### 1. Person Ability Updates
-```r
-for (j in unique(resp$id)) {
-  resp_j <- resp[resp$id == j, ]
-  update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
-  theta_updated[j] <- theta[j] + update_term
 }
 ```
 This follows the same approach as Maths Garden for person ability updates.

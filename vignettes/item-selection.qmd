@@ -30,12 +30,12 @@ All item selection functions must follow this signature:
 
 ```r
 select_function <- function(
-  pers,           # Current person parameter estimates
-  item,           # Current item parameter estimates
-  resp,           # All available response data
+  pers,            # Current person parameter estimates
+  item,            # Current item parameter estimates
+  resp,            # All available response data
   resp_cur = NULL, # Currently selected responses
   adj_mat = NULL,  # Item-item adjacency matrix
-  ...             # Additional arguments
+  ...              # Additional arguments
 ) {
   # Function implementation
   return(resp_new)
