@@ -108,37 +108,42 @@
 </h3>
 <p>The <code><a href="../reference/update_maths_garden.html">update_maths_garden()</a></code> function implements this algorithm:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">update_maths_garden</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Calculate expected probabilities using logistic function</span></span>
-<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">diff</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">update_maths_garden</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">resp</span>, <span class="va">K_theta</span> <span class="op">=</span> <span class="fl">0.1</span>, <span class="va">K_b</span> <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co"># Implement the update rule from the maths garden paper</span></span>
+<span>  <span class="co"># Theta_hat_j = theta_j + K_j (S_ij - E(S_ij))</span></span>
+<span>  <span class="co"># Beta_hat_i = beta_i + K_i(E(S_ij)-S_ij)</span></span>
+<span>  <span class="co"># where S_ij is the observed score and E(S_ij) is the expected probability</span></span>
 <span></span>
-<span>  <span class="co"># Learning rates (K values) - these could be tuned</span></span>
-<span>  <span class="va">K_theta</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="co"># Learning rate for ability</span></span>
-<span>  <span class="va">K_beta</span> <span class="op">&lt;-</span> <span class="fl">0.1</span>  <span class="co"># Learning rate for difficulty</span></span>
+<span>  <span class="co"># Calculate expected probabilities using logistic function</span></span>
+<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">pers</span><span class="op">$</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">item</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="co"># Update theta (ability) for each person</span></span>
-<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
+<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">pers</span><span class="op">$</span><span class="va">theta</span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># Get responses for person j</span></span>
 <span>    <span class="va">resp_j</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span>, <span class="op">]</span></span>
 <span>    <span class="co"># Calculate update term</span></span>
 <span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_theta</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
+<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">pers</span><span class="op">$</span><span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
 <span>  <span class="op">}</span></span>
 <span></span>
+<span>  <span class="va">pers</span><span class="op">$</span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="va">theta_updated</span></span>
+<span></span>
 <span>  <span class="co"># Update beta (difficulty) for each item</span></span>
-<span>  <span class="va">beta_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
+<span>  <span class="va">b_updated</span> <span class="op">&lt;-</span> <span class="va">item</span><span class="op">$</span><span class="va">b</span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># Get responses for item i</span></span>
 <span>    <span class="va">resp_i</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span> <span class="op">==</span> <span class="va">i</span>, <span class="op">]</span></span>
 <span>    <span class="co"># Calculate update term</span></span>
-<span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_beta</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span> <span class="op">==</span> <span class="va">i</span><span class="op">]</span> <span class="op">-</span> <span class="va">resp_i</span><span class="op">$</span><span class="va">resp</span><span class="op">)</span></span>
-<span>    <span class="va">beta_updated</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
+<span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_b</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span> <span class="op">==</span> <span class="va">i</span><span class="op">]</span> <span class="op">-</span> <span class="va">resp_i</span><span class="op">$</span><span class="va">resp</span><span class="op">)</span></span>
+<span>    <span class="va">b_updated</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">item</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
 <span>  <span class="op">}</span></span>
 <span></span>
+<span>  <span class="va">item</span><span class="op">$</span><span class="va">b</span> <span class="op">&lt;-</span> <span class="va">b_updated</span></span>
+<span></span>
 <span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    theta_est <span class="op">=</span> <span class="va">theta_updated</span>,</span>
-<span>    diff_est <span class="op">=</span> <span class="va">beta_updated</span>,</span>
+<span>    pers <span class="op">=</span> <span class="va">pers</span>,</span>
+<span>    item <span class="op">=</span> <span class="va">item</span>,</span>
 <span>    resp_cur <span class="op">=</span> <span class="va">resp</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>

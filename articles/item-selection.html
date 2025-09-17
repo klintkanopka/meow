@@ -98,12 +98,12 @@
 <p>All item selection functions must follow this signature:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select_function</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
-<span>  <span class="va">pers</span>,           <span class="co"># Current person parameter estimates</span></span>
-<span>  <span class="va">item</span>,           <span class="co"># Current item parameter estimates</span></span>
-<span>  <span class="va">resp</span>,           <span class="co"># All available response data</span></span>
+<span>  <span class="va">pers</span>,            <span class="co"># Current person parameter estimates</span></span>
+<span>  <span class="va">item</span>,            <span class="co"># Current item parameter estimates</span></span>
+<span>  <span class="va">resp</span>,            <span class="co"># All available response data</span></span>
 <span>  <span class="va">resp_cur</span> <span class="op">=</span> <span class="cn">NULL</span>, <span class="co"># Currently selected responses</span></span>
 <span>  <span class="va">adj_mat</span> <span class="op">=</span> <span class="cn">NULL</span>,  <span class="co"># Item-item adjacency matrix</span></span>
-<span>  <span class="va">...</span>             <span class="co"># Additional arguments</span></span>
+<span>  <span class="va">...</span>              <span class="co"># Additional arguments</span></span>
 <span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># Function implementation</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">resp_new</span><span class="op">)</span></span>

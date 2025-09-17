@@ -122,14 +122,13 @@
 </h3>
 <p>The <code><a href="../reference/update_prowise_learn.html">update_prowise_learn()</a></code> function implements this algorithm:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">update_prowise_learn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Initialize updated parameters</span></span>
-<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
-<span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
+<code class="sourceCode R"><span><span class="va">update_prowise_learn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">resp</span>, <span class="va">K_theta</span> <span class="op">=</span> <span class="fl">0.1</span>, <span class="va">K_b</span> <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co"># Implement the update rule from the Prowise Learn paper with paired item updates</span></span>
+<span>  <span class="co"># to prevent rating drift</span></span>
 <span></span>
-<span>  <span class="co"># Learning rates (K values) - these could be tuned</span></span>
-<span>  <span class="va">K_theta</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="co"># Learning rate for ability</span></span>
-<span>  <span class="va">K_beta</span> <span class="op">&lt;-</span> <span class="fl">0.1</span>  <span class="co"># Learning rate for difficulty</span></span>
+<span>  <span class="co"># Initialize updated parameters</span></span>
+<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span> <span class="op">&lt;-</span> <span class="va">pers</span><span class="op">$</span><span class="va">theta</span></span>
+<span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span> <span class="op">&lt;-</span> <span class="va">pers</span><span class="op">$</span><span class="va">b</span></span>
 <span></span>
 <span>  <span class="co"># Calculate expected probabilities for all responses</span></span>
 <span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">diff</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
@@ -155,7 +154,7 @@
 <span>        <span class="va">s_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
 <span>        <span class="va">e_now</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
 <span>        <span class="va">e_prev</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_beta</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="va">K_beta</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_b</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="va">K_b</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
 <span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">+</span> <span class="va">kappa</span></span>
 <span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">-</span> <span class="va">kappa</span></span>
 <span>        <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="va">update_count</span> <span class="op">+</span> <span class="fl">1</span></span>
@@ -164,27 +163,20 @@
 <span>  <span class="op">}</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Prowise item updates triggered:"</span>, <span class="va">update_count</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span></span>
+<span>  <span class="va">pers</span><span class="op">$</span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="va">theta_updated</span></span>
+<span>  <span class="va">item</span><span class="op">$</span><span class="va">b</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span></span>
+<span></span>
 <span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    theta_est <span class="op">=</span> <span class="va">theta_updated</span>,</span>
-<span>    diff_est <span class="op">=</span> <span class="va">diff_updated</span>,</span>
+<span>    pers <span class="op">=</span> <span class="va">pers</span>,</span>
+<span>    item <span class="op">=</span> <span class="va">item</span>,</span>
 <span>    resp_cur <span class="op">=</span> <span class="va">resp</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-</section><section class="level2"><h3 id="step-by-step-breakdown">Step-by-Step Breakdown<a class="anchor" aria-label="anchor" href="#step-by-step-breakdown"></a>
-</h3>
-<section class="level3"><h4 id="person-ability-updates">1. Person Ability Updates<a class="anchor" aria-label="anchor" href="#person-ability-updates"></a>
+<p>This follows the same approach as Maths Garden for person ability updates.</p>
+<section class="level3"><h4 id="paired-item-updates">2. Paired Item Updates<a class="anchor" aria-label="anchor" href="#paired-item-updates"></a>
 </h4>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">resp_j</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span>, <span class="op">]</span></span>
-<span>  <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_theta</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>This follows the same approach as Maths Garden for person ability updates.</p>
-</section><section class="level3"><h4 id="paired-item-updates">2. Paired Item Updates<a class="anchor" aria-label="anchor" href="#paired-item-updates"></a>
-</h4>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">person</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">person_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span><span class="op">)</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
@@ -208,7 +200,7 @@
 </h2>
 <section class="level2"><h3 id="basic-usage">Basic Usage<a class="anchor" aria-label="anchor" href="#basic-usage"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run simulation with Prowise Learn updates</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
 <span>  select_fun <span class="op">=</span> <span class="va">select_max_info</span>,</span>
@@ -219,7 +211,7 @@
 </section><section class="level2"><h3 id="customizing-learning-rates">Customizing Learning Rates<a class="anchor" aria-label="anchor" href="#customizing-learning-rates"></a>
 </h3>
 <p>You can modify the learning rates by creating a wrapper function:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">update_prowise_learn_custom</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span>, <span class="va">K_theta</span> <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">K_beta</span> <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
 <span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
@@ -305,7 +297,7 @@
 <section class="level2"><h3 id="adaptive-learning-rates">Adaptive Learning Rates<a class="anchor" aria-label="anchor" href="#adaptive-learning-rates"></a>
 </h3>
 <p>You can implement adaptive learning rates that change based on the amount of data:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">update_prowise_learn_adaptive</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
 <span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
@@ -361,7 +353,7 @@
 </section><section class="level2"><h3 id="constrained-updates">Constrained Updates<a class="anchor" aria-label="anchor" href="#constrained-updates"></a>
 </h3>
 <p>You can add constraints to prevent extreme parameter values:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">update_prowise_learn_constrained</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span>, </span>
 <span>                                           <span class="va">theta_bounds</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>, </span>
 <span>                                           <span class="va">diff_bounds</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -432,7 +424,7 @@
 <strong>Handle Edge Cases</strong>: Consider what happens with few responses or single responses per person</li>
 </ol></section><section class="section level2"><h2 id="example-complete-workflow">Example: Complete Workflow<a class="anchor" aria-label="anchor" href="#example-complete-workflow"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load required packages</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://klintkanopka.com/meow/">meow</a></span><span class="op">)</span></span>
 <span></span>
