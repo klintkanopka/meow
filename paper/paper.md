@@ -42,7 +42,7 @@ The goal of the `meow` project is to advance CAT algorithm development research 
 
 # Ongoing Research
 
-Development of `meow` was motivated by ongoing research by the authors in CAT algorithm development that models the item pool as a network object.
+Development of `meow` was motivated by ongoing research by the authors in CAT algorithm development that models the item pool as a network object for the purposes of item selection, exposure control, and propagating parameter updates.
 
 # Acknowledgements
 
