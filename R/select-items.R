@@ -194,56 +194,6 @@ select_max_dist <- function(
   return(resp_new)
 }
 
-#' Alternative edge weight functions for network-based item selection
-#'
-#' These functions provide different approaches to calculating edge weights from the adjacency matrix.
-#'
-#' @param adj_mat The adjacency matrix where entry [i,j] is the number of co-responses between items i and j
-#' @param alpha Smoothing parameter for avoiding division by zero
-#' @param beta Exponent for power transformation
-#' @returns A matrix of edge weights for use in distance calculations
-#'
-#' @export
-edge_weight_inverse <- function(adj_mat, alpha = 1) {
-  # Original approach: inverse of co-response count
-  # Higher co-responses = lower weights = shorter distances
-  return(1 / (adj_mat + alpha))
-}
-
-#' @rdname edge_weight_inverse
-#' @export
-edge_weight_negative_log <- function(adj_mat, alpha = 1) {
-  # Negative log transformation
-  # Higher co-responses = lower weights = shorter distances
-  return(-log(adj_mat + alpha))
-}
-
-#' @rdname edge_weight_inverse
-#' @export
-edge_weight_linear <- function(adj_mat, max_co_responses = NULL) {
-  # Linear transformation: higher co-responses = higher weights = longer distances
-  # This inverts the logic: items that are frequently answered together are "farther apart"
-  if (is.null(max_co_responses)) {
-    max_co_responses <- max(adj_mat)
-  }
-  return(adj_mat / max_co_responses)
-}
-
-#' @rdname edge_weight_inverse
-#' @export
-edge_weight_power <- function(adj_mat, beta = 0.5, alpha = 1) {
-  # Power transformation with smoothing
-  # beta < 1: reduces the impact of high co-response counts
-  # beta > 1: amplifies the impact of high co-response counts
-  return((adj_mat + alpha)^beta)
-}
-
-#' @rdname edge_weight_inverse
-#' @export
-edge_weight_exponential <- function(adj_mat, lambda = 0.1, alpha = 1) {
-  # Exponential decay: higher co-responses = much lower weights
-  return(exp(-lambda * (adj_mat + alpha)))
-}
 
 #' Enhanced network-based item selection with configurable edge weights
 #'
@@ -275,8 +225,11 @@ select_max_dist_enhanced <- function(
     return(resp[resp$item <= 5, ])
   } else {
     # Calculate edge weights using the specified function
-    edge_weights <- do.call(edge_weight_fun, c(list(adj_mat = adj_mat), edge_weight_args))
-    
+    edge_weights <- do.call(
+      edge_weight_fun,
+      c(list(adj_mat = adj_mat), edge_weight_args)
+    )
+
     # Compute distance matrix using Floyd-Warshall
     dist_mat <- Rfast::floyd(edge_weights)
 

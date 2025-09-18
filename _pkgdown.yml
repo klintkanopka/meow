@@ -48,3 +48,4 @@ reference:
   desc: Additional helper functions. 
 - contents:
   - construct_adj_mat
+  - starts_with('edge_weight_')
