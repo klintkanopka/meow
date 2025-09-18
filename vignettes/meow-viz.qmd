@@ -1,5 +1,5 @@
 ---
-title: "Visualizing with `meow`: Comparing Item Exposure Control Methods"
+title: "Visualizing Item Exposure Control Methods"
 vignette: >
   %\VignetteIndexEntry{Parameter Update Functions}
   %\VignetteEngine{quarto::html}

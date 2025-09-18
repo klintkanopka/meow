@@ -4,6 +4,12 @@ template:
   light-switch: true
 
 articles:
+- title: Getting Started
+  desc: Start-to-finish simulation workflows
+  navbar: ~
+  contents:
+  - meow-viz
+
 - title: Building Blocks
   desc:  The structure and design of the core components of the `meow` framework
   navbar: ~
@@ -11,7 +17,6 @@ articles:
   - data-loaders
   - item-selection
   - parameter-update
-  - meow-viz
 
 - title: Implementations
   desc: Deeper dives into specific implementations
@@ -20,3 +25,26 @@ articles:
   - prowise-learn-update
   - network-item-selection
 
+reference:
+- title: Simulation Function
+  desc: The core of any individual simulation.
+- contents:
+  - meow
+- title: Data Loaders
+  desc:  Load existing or simulate new data for use in a `meow` simulation.
+- contents:
+  - starts_with('select_')
+- title: Selection Functions
+  desc: Included item selection algorithms.
+- contents:
+  - starts_with('select_')
+- title: Parameter Update Functions
+  desc: >
+    Included parameter update functions. Note that some only operate on person 
+    parameters, while others simultaneously update person and item parameters.
+- contents:
+  - starts_with('update_')
+- title: Utilities
+  desc: Additional helper functions. 
+- contents:
+  - construct_adj_mat
