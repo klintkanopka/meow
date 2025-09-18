@@ -33,7 +33,7 @@ reference:
 - title: Data Loaders
   desc:  Load existing or simulate new data for use in a `meow` simulation.
 - contents:
-  - starts_with("select_")
+  - starts_with("data_")
 - title: Selection Functions
   desc: Included item selection algorithms.
 - contents:
