@@ -33,19 +33,19 @@ reference:
 - title: Data Loaders
   desc:  Load existing or simulate new data for use in a `meow` simulation.
 - contents:
-  - starts_with('select_')
+  - starts_with("select_")
 - title: Selection Functions
   desc: Included item selection algorithms.
 - contents:
-  - starts_with('select_')
+  - starts_with("select_")
 - title: Parameter Update Functions
   desc: >
     Included parameter update functions. Note that some only operate on person 
     parameters, while others simultaneously update person and item parameters.
 - contents:
-  - starts_with('update_')
+  - starts_with("update_")
 - title: Utilities
   desc: Additional helper functions. 
 - contents:
   - construct_adj_mat
-  - starts_with('edge_weight_')
+  - starts_with("edge_weight_")
