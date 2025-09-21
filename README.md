@@ -1,6 +1,7 @@
 # meow <a href="http://klintkanopka.com/meow/"><img src="man/figures/logo.png" align="right" height="120" alt="meow website" /></a>
 
 [![status](https://joss.theoj.org/papers/eb37b6968301b54bc93feb7d0021753c/status.svg)](https://joss.theoj.org/papers/eb37b6968301b54bc93feb7d0021753c)
+![license](https://img.shields.io/github/license/klintkanopka/meow)
 
 `meow` is a package for conducting simulations of computer adaptive testing (CAT). The pitch here is that `meow` is a framework that facilitates reproducible comparisons between different combinations of data generating processes (DGPs), item selection algorithms, and parameter update algorithms.
 
