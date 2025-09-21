@@ -1,5 +1,5 @@
 ---
-title: 'meow: A unified framework for conducting simulations of computer adaptive testing (CAT) algorithms in R'
+title: 'meow: A Unified Framework for Conducting Simulations of Computer Adaptive Testing Algorithms in R'
 tags:
   - R
   - psychometrics
