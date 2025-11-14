@@ -1,0 +1,476 @@
+# Implementing the Prowise Learn Update Algorithm
+
+The Prowise Learn update algorithm is an advanced parameter estimation
+method designed to address the problem of rating drift in computer
+adaptive testing systems. This algorithm was developed for the Prowise
+Learn platform and introduces paired item updates to maintain parameter
+stability while still providing real-time adaptation.
+
+In this vignette, we will explore the mathematical foundations of the
+Prowise Learn algorithm, its unique paired update mechanism, and how to
+implement and customize it for your research.
+
+## Mathematical Foundation
+
+### Core Update Equations
+
+The Prowise Learn algorithm builds upon the Maths Garden approach but
+adds a crucial innovation: paired item updates to prevent rating drift.
+The update equations are:
+
+**Person Ability Update:**
+$$\theta_{j}^{new} = \theta_{j}^{old} + K_{\theta}\sum\limits_{i \in I_{j}}\left( S_{ij} - E\left( S_{ij} \right) \right)$$
+
+**Paired Item Difficulty Updates:** For consecutive responses by the
+same person, the difficulty updates are paired:
+$$\kappa = 0.5 \cdot \left( K_{b} \cdot \left( S_{now} - E_{now} \right) - K_{b} \cdot \left( S_{prev} - E_{prev} \right) \right)$$$$b_{now}^{new} = b_{now}^{old} + \kappa$$$$b_{prev}^{new} = b_{prev}^{old} - \kappa$$
+
+Where: - $\theta_{j}$ is the ability of person $j$ - $b_{i}$ is the
+difficulty of item $i$ - $S_{ij}$ is the observed response (0 or 1) of
+person $j$ to item $i$ - $E\left( S_{ij} \right)$ is the expected
+probability of a correct response - $K_{\theta}$ and $K_{b}$ are
+learning rates for abilities and difficulties respectively - $S_{now}$
+and $S_{prev}$ are the current and previous responses - $E_{now}$ and
+$E_{prev}$ are the expected probabilities for current and previous items
+
+### Expected Response Probability
+
+The expected probability $E\left( S_{ij} \right)$ is calculated using
+the logistic function:
+
+$$E\left( S_{ij} \right) = P\left( S_{ij} = 1|\theta_{j},b_{i} \right) = \frac{1}{1 + e^{-{(\theta_{j} - b_{i})}}}$$
+
+This uses the 1-parameter logistic (1PL) item response model.
+
+### Rating Drift Problem
+
+Rating drift occurs when item difficulty estimates systematically
+increase or decrease over time, often due to:
+
+1.  **Sequential Bias**: Later items in a sequence may be systematically
+    easier or harder
+2.  **Person Ability Changes**: If person abilities change during
+    testing, item difficulties may be incorrectly adjusted
+3.  **Selection Bias**: Adaptive selection may create correlations
+    between item difficulties and administration order
+
+### Paired Update Solution
+
+The paired update mechanism addresses rating drift by:
+
+1.  **Balancing Updates**: When updating a pair of items, the total
+    difficulty change sums to zero
+2.  **Relative Positioning**: Items maintain their relative difficulty
+    positions
+3.  **Drift Prevention**: Systematic increases or decreases in
+    difficulty are prevented
+
+## Implementation in `meow`
+
+### Function Overview
+
+The
+[`update_prowise_learn()`](http://klintkanopka.com/meow/reference/update_prowise_learn.md)
+function implements this algorithm:
+
+``` r
+update_prowise_learn <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
+  # Implement the update rule from the Prowise Learn paper with paired item updates
+  # to prevent rating drift
+
+  # Initialize updated parameters
+  theta_updated <- theta <- pers$theta
+  diff_updated <- diff <- pers$b
+
+  # Calculate expected probabilities for all responses
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+
+  # Update theta (ability) for each person
+  for (j in unique(resp$id)) {
+    resp_j <- resp[resp$id == j, ]
+    update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
+    theta_updated[j] <- theta[j] + update_term
+  }
+
+  # Paired item updates
+  update_count <- 0
+  for (person in unique(resp$id)) {
+    person_idx <- which(resp$id == person)
+    if (length(person_idx) >= 2) {
+      for (i in 2:length(person_idx)) {
+        idx_now <- person_idx[i]
+        idx_prev <- person_idx[i - 1]
+        item_now <- resp$item[idx_now]
+        item_prev <- resp$item[idx_prev]
+        s_now <- resp$resp[idx_now]
+        s_prev <- resp$resp[idx_prev]
+        e_now <- E_Sij[idx_now]
+        e_prev <- E_Sij[idx_prev]
+        kappa <- 0.5 * (K_b * (s_now - e_now) - K_b * (s_prev - e_prev))
+        diff_updated[item_now] <- diff_updated[item_now] + kappa
+        diff_updated[item_prev] <- diff_updated[item_prev] - kappa
+        update_count <- update_count + 1
+      }
+    }
+  }
+  cat("Prowise item updates triggered:", update_count, "\n")
+
+  pers$theta <- theta_updated
+  item$b <- diff_updated
+
+  out <- list(
+    pers = pers,
+    item = item,
+    resp_cur = resp
+  )
+  return(out)
+}
+```
+
+This follows the same approach as Maths Garden for person ability
+updates.
+
+#### 2. Paired Item Updates
+
+``` r
+for (person in unique(resp$id)) {
+  person_idx <- which(resp$id == person)
+  if (length(person_idx) >= 2) {
+    for (i in 2:length(person_idx)) {
+      idx_now <- person_idx[i]
+      idx_prev <- person_idx[i - 1]
+      item_now <- resp$item[idx_now]
+      item_prev <- resp$item[idx_prev]
+      s_now <- resp$resp[idx_now]
+      s_prev <- resp$resp[idx_prev]
+      e_now <- E_Sij[idx_now]
+      e_prev <- E_Sij[idx_prev]
+      kappa <- 0.5 * (K_beta * (s_now - e_now) - K_beta * (s_prev - e_prev))
+      diff_updated[item_now] <- diff_updated[item_now] + kappa
+      diff_updated[item_prev] <- diff_updated[item_prev] - kappa
+    }
+  }
+}
+```
+
+This implements the paired update mechanism: 1. For each person with
+multiple responses, consider consecutive pairs 2. Calculate the update
+term $\kappa$ based on both current and previous responses 3. Apply
+$+\kappa$ to the current item and $-\kappa$ to the previous item 4. This
+ensures the total difficulty change for the pair is zero
+
+## Using the Prowise Learn Algorithm
+
+### Basic Usage
+
+``` r
+# Run simulation with Prowise Learn updates
+results <- meow(
+  select_fun = select_max_info,
+  update_fun = update_prowise_learn,
+  data_loader = data_simple_1pl,
+  data_args = list(N_persons = 100, N_items = 50)
+)
+```
+
+### Customizing Learning Rates
+
+You can modify the learning rates by creating a wrapper function:
+
+``` r
+update_prowise_learn_custom <- function(theta, diff, resp, K_theta = 0.05, K_beta = 0.05) {
+  theta_updated <- theta
+  diff_updated <- diff
+
+  # Calculate expected probabilities
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+
+  # Update theta (ability) for each person
+  for (j in unique(resp$id)) {
+    resp_j <- resp[resp$id == j, ]
+    update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
+    theta_updated[j] <- theta[j] + update_term
+  }
+
+  # Paired item updates with custom learning rate
+  update_count <- 0
+  for (person in unique(resp$id)) {
+    person_idx <- which(resp$id == person)
+    if (length(person_idx) >= 2) {
+      for (i in 2:length(person_idx)) {
+        idx_now <- person_idx[i]
+        idx_prev <- person_idx[i - 1]
+        item_now <- resp$item[idx_now]
+        item_prev <- resp$item[idx_prev]
+        s_now <- resp$resp[idx_now]
+        s_prev <- resp$resp[idx_prev]
+        e_now <- E_Sij[idx_now]
+        e_prev <- E_Sij[idx_prev]
+        kappa <- 0.5 * (K_beta * (s_now - e_now) - K_beta * (s_prev - e_prev))
+        diff_updated[item_now] <- diff_updated[item_now] + kappa
+        diff_updated[item_prev] <- diff_updated[item_prev] - kappa
+        update_count <- update_count + 1
+      }
+    }
+  }
+
+  out <- list(
+    theta_est = theta_updated,
+    diff_est = diff_updated,
+    resp_cur = resp
+  )
+  return(out)
+}
+
+# Use with custom learning rates
+results <- meow(
+  select_fun = select_max_info,
+  update_fun = update_prowise_learn_custom,
+  data_loader = data_simple_1pl,
+  update_args = list(K_theta = 0.05, K_beta = 0.05),
+  data_args = list(N_persons = 100, N_items = 50)
+)
+```
+
+## Advantages and Limitations
+
+### Advantages
+
+1.  **Prevents Rating Drift**: The paired update mechanism prevents
+    systematic changes in item difficulties
+2.  **Maintains Relative Positions**: Items maintain their relative
+    difficulty ordering
+3.  **Real-time Updates**: Both person and item parameters are updated
+    simultaneously
+4.  **Computational Efficiency**: Fast computation suitable for
+    real-time applications
+5.  **Interpretable**: The paired update mechanism has clear intuitive
+    meaning
+
+### Limitations
+
+1.  **Requires Multiple Responses**: Paired updates only work when a
+    person has multiple responses
+2.  **Order Dependency**: The effectiveness depends on the order of item
+    administration
+3.  **Fixed Learning Rates**: Uses constant learning rates that don’t
+    adapt to data
+4.  **No Uncertainty Quantification**: Doesn’t provide confidence
+    intervals or standard errors
+5.  **Assumes 1PL Model**: Based on the Rasch model, may not fit data
+    requiring 2PL or 3PL models
+
+## Extensions and Modifications
+
+### Adaptive Learning Rates
+
+You can implement adaptive learning rates that change based on the
+amount of data:
+
+``` r
+update_prowise_learn_adaptive <- function(theta, diff, resp) {
+  theta_updated <- theta
+  diff_updated <- diff
+
+  # Calculate expected probabilities
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+
+  # Adaptive learning rates based on number of responses
+  for (j in unique(resp$id)) {
+    resp_j <- resp[resp$id == j, ]
+    n_responses <- nrow(resp_j)
+    
+    # Decrease learning rate with more responses
+    K_theta_adaptive <- 0.1 / (1 + n_responses * 0.1)
+    
+    update_term <- K_theta_adaptive * sum(resp_j$resp - E_Sij[resp$id == j])
+    theta_updated[j] <- theta[j] + update_term
+  }
+
+  # Paired item updates with adaptive rates
+  update_count <- 0
+  for (person in unique(resp$id)) {
+    person_idx <- which(resp$id == person)
+    if (length(person_idx) >= 2) {
+      for (i in 2:length(person_idx)) {
+        resp_person <- resp[resp$id == person, ]
+        n_responses <- nrow(resp_person)
+        K_beta_adaptive <- 0.1 / (1 + n_responses * 0.1)
+        
+        idx_now <- person_idx[i]
+        idx_prev <- person_idx[i - 1]
+        item_now <- resp$item[idx_now]
+        item_prev <- resp$item[idx_prev]
+        s_now <- resp$resp[idx_now]
+        s_prev <- resp$resp[idx_prev]
+        e_now <- E_Sij[idx_now]
+        e_prev <- E_Sij[idx_prev]
+        kappa <- 0.5 * (K_beta_adaptive * (s_now - e_now) - K_beta_adaptive * (s_prev - e_prev))
+        diff_updated[item_now] <- diff_updated[item_now] + kappa
+        diff_updated[item_prev] <- diff_updated[item_prev] - kappa
+        update_count <- update_count + 1
+      }
+    }
+  }
+
+  out <- list(
+    theta_est = theta_updated,
+    diff_est = diff_updated,
+    resp_cur = resp
+  )
+  return(out)
+}
+```
+
+### Constrained Updates
+
+You can add constraints to prevent extreme parameter values:
+
+``` r
+update_prowise_learn_constrained <- function(theta, diff, resp, 
+                                           theta_bounds = c(-4, 4), 
+                                           diff_bounds = c(-4, 4)) {
+  theta_updated <- theta
+  diff_updated <- diff
+
+  # Calculate expected probabilities
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+
+  # Update theta with constraints
+  for (j in unique(resp$id)) {
+    resp_j <- resp[resp$id == j, ]
+    update_term <- 0.1 * sum(resp_j$resp - E_Sij[resp$id == j])
+    theta_updated[j] <- theta[j] + update_term
+    
+    # Apply constraints
+    theta_updated[j] <- max(theta_bounds[1], min(theta_bounds[2], theta_updated[j]))
+  }
+
+  # Paired item updates with constraints
+  update_count <- 0
+  for (person in unique(resp$id)) {
+    person_idx <- which(resp$id == person)
+    if (length(person_idx) >= 2) {
+      for (i in 2:length(person_idx)) {
+        idx_now <- person_idx[i]
+        idx_prev <- person_idx[i - 1]
+        item_now <- resp$item[idx_now]
+        item_prev <- resp$item[idx_prev]
+        s_now <- resp$resp[idx_now]
+        s_prev <- resp$resp[idx_prev]
+        e_now <- E_Sij[idx_now]
+        e_prev <- E_Sij[idx_prev]
+        kappa <- 0.5 * (0.1 * (s_now - e_now) - 0.1 * (s_prev - e_prev))
+        diff_updated[item_now] <- diff_updated[item_now] + kappa
+        diff_updated[item_prev] <- diff_updated[item_prev] - kappa
+        
+        # Apply constraints
+        diff_updated[item_now] <- max(diff_bounds[1], min(diff_bounds[2], diff_updated[item_now]))
+        diff_updated[item_prev] <- max(diff_bounds[1], min(diff_bounds[2], diff_updated[item_prev]))
+        
+        update_count <- update_count + 1
+      }
+    }
+  }
+
+  out <- list(
+    theta_est = theta_updated,
+    diff_est = diff_updated,
+    resp_cur = resp
+  )
+  return(out)
+}
+```
+
+## Best Practices
+
+1.  **Monitor Update Counts**: Pay attention to the number of paired
+    updates triggered
+2.  **Use Appropriate Learning Rates**: Start with small learning rates
+    (0.05-0.1) and adjust
+3.  **Consider Response Order**: The effectiveness depends on the
+    sequence of responses
+4.  **Validate Stability**: Check that item difficulties remain stable
+    over time
+5.  **Compare with Alternatives**: Test against other methods to ensure
+    effectiveness
+6.  **Handle Edge Cases**: Consider what happens with few responses or
+    single responses per person
+
+## Example: Complete Workflow
+
+``` r
+# Load required packages
+library(meow)
+
+# Define improved Prowise Learn function
+update_prowise_learn_improved <- function(theta, diff, resp) {
+  theta_updated <- theta
+  diff_updated <- diff
+
+  # Calculate expected probabilities
+  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
+
+  # Adaptive learning rates for person abilities
+  for (j in unique(resp$id)) {
+    resp_j <- resp[resp$id == j, ]
+    n_responses <- nrow(resp_j)
+    K_theta_adaptive <- 0.1 / (1 + n_responses * 0.05)
+    
+    update_term <- K_theta_adaptive * sum(resp_j$resp - E_Sij[resp$id == j])
+    theta_updated[j] <- theta[j] + update_term
+    theta_updated[j] <- max(-4, min(4, theta_updated[j]))  # Constraints
+  }
+
+  # Paired item updates with adaptive rates
+  update_count <- 0
+  for (person in unique(resp$id)) {
+    person_idx <- which(resp$id == person)
+    if (length(person_idx) >= 2) {
+      for (i in 2:length(person_idx)) {
+        resp_person <- resp[resp$id == person, ]
+        n_responses <- nrow(resp_person)
+        K_beta_adaptive <- 0.1 / (1 + n_responses * 0.05)
+        
+        idx_now <- person_idx[i]
+        idx_prev <- person_idx[i - 1]
+        item_now <- resp$item[idx_now]
+        item_prev <- resp$item[idx_prev]
+        s_now <- resp$resp[idx_now]
+        s_prev <- resp$resp[idx_prev]
+        e_now <- E_Sij[idx_now]
+        e_prev <- E_Sij[idx_prev]
+        kappa <- 0.5 * (K_beta_adaptive * (s_now - e_now) - K_beta_adaptive * (s_prev - e_prev))
+        diff_updated[item_now] <- diff_updated[item_now] + kappa
+        diff_updated[item_prev] <- diff_updated[item_prev] - kappa
+        
+        # Apply constraints
+        diff_updated[item_now] <- max(-4, min(4, diff_updated[item_now]))
+        diff_updated[item_prev] <- max(-4, min(4, diff_updated[item_prev]))
+        
+        update_count <- update_count + 1
+      }
+    }
+  }
+
+  cat("Prowise item updates triggered:", update_count, "\n")
+
+  out <- list(
+    theta_est = theta_updated,
+    diff_est = diff_updated,
+    resp_cur = resp
+  )
+  return(out)
+}
+
+# Run simulation
+results <- meow(
+  select_fun = select_max_info,
+  update_fun = update_prowise_learn_improved,
+  data_loader = data_simple_1pl,
+  data_args = list(N_persons = 100, N_items = 50, data_seed = 123)
+)
+
+# Analyze results
+print(head(results$results))
+```

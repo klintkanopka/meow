@@ -1,0 +1,206 @@
+# Item Selection Functions
+
+Item selection functions are a crucial component of the `meow` framework
+that determine which item to administer next to each respondent during a
+computer adaptive testing simulation. These functions implement various
+algorithms for selecting the most appropriate item based on current
+parameter estimates and response patterns.
+
+In this vignette, we will explore the available item selection functions
+and learn how to write custom ones for your specific research needs.
+
+## Understanding Item Selection Functions
+
+Item selection functions in `meow` take the current state of the
+simulation and return the next set of responses to be included in the
+analysis. They receive information about:
+
+- Current person parameter estimates
+- Current item parameter estimates  
+- All available response data
+- Currently selected responses
+- Item-item adjacency matrix (for exposure control)
+
+### Function Signature
+
+All item selection functions must follow this signature:
+
+``` r
+select_function <- function(
+  pers,            # Current person parameter estimates
+  item,            # Current item parameter estimates
+  resp,            # All available response data
+  resp_cur = NULL, # Currently selected responses
+  adj_mat = NULL,  # Item-item adjacency matrix
+  ...              # Additional arguments
+) {
+  # Function implementation
+  return(resp_new)
+}
+```
+
+### Return Values
+
+Item selection functions must return a dataframe in the same format as
+the input `resp` object - a long-form dataframe with columns `id`,
+`item`, and `resp`. This dataframe should contain all responses that
+should be included in the current iteration of the simulation.
+
+## Available Item Selection Functions
+
+### Sequential Selection
+
+The
+[`select_sequential()`](http://klintkanopka.com/meow/reference/select_sequential.md)
+function selects items in a predetermined order:
+
+``` r
+select_sequential <- function(
+  pers,
+  item,
+  resp,
+  resp_cur = NULL,
+  adj_mat = NULL
+) {
+  if (is.null(resp_cur)) {
+    return(resp[resp$item <= 5, ])
+  } else {
+    resp_new <- dplyr::anti_join(
+      resp,
+      resp_cur,
+      by = c('id', 'item', 'resp')
+    ) |>
+      dplyr::slice_head(n = 1, by = .data$id)
+    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+  }
+  return(resp_new)
+}
+```
+
+This function: 1. For the first iteration, selects the first 5 items for
+all respondents 2. For subsequent iterations, selects the next
+unadministered item for each respondent 3. Uses
+[`dplyr::anti_join()`](https://dplyr.tidyverse.org/reference/filter-joins.html)
+to find responses not yet included 4. Uses
+[`dplyr::slice_head()`](https://dplyr.tidyverse.org/reference/slice.html)
+to select one item per respondent
+
+### Random Selection
+
+The
+[`select_random()`](http://klintkanopka.com/meow/reference/select_random.md)
+function selects items randomly:
+
+``` r
+select_random <- function(
+  pers,
+  item,
+  resp,
+  resp_cur = NULL,
+  adj_mat = NULL,
+  select_seed = NULL
+) {
+  set.seed(select_seed)
+  if (is.null(resp_cur)) {
+    return(resp[resp$item <= 5, ])
+  } else {
+    resp_new <- dplyr::anti_join(
+      resp,
+      resp_cur,
+      by = c('id', 'item', 'resp')
+    ) |>
+      dplyr::slice_sample(n = 1, by = .data$id)
+    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+  }
+  set.seed(NULL)
+  return(resp_new)
+}
+```
+
+This function: 1. Sets a random seed for reproducibility 2. For the
+first iteration, selects the first 5 items 3. For subsequent iterations,
+randomly selects one unadministered item per respondent 4. Uses
+[`dplyr::slice_sample()`](https://dplyr.tidyverse.org/reference/slice.html)
+for random selection 5. Clears the seed to avoid affecting downstream
+processes
+
+### Maximum Information Selection
+
+The
+[`select_max_info()`](http://klintkanopka.com/meow/reference/select_max_info.md)
+function selects items that maximize information at the current ability
+estimate:
+
+``` r
+select_max_info <- function(
+  pers,
+  item,
+  resp,
+  resp_cur = NULL,
+  adj_mat = NULL
+) {
+  if (is.null(resp_cur)) {
+    return(resp[resp$item <= 5, ])
+  } else {
+    resp_new <- dplyr::anti_join(
+      resp,
+      resp_cur,
+      by = c('id', 'item', 'resp')
+    ) |>
+      dplyr::left_join(pers, by = 'id') |>
+      dplyr::left_join(item, by = 'item') |>
+      dplyr::mutate(
+        info = .data$a^2 *
+          stats::plogis(.data$a * (.data$theta - .data$b)) *
+          (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
+      ) |>
+      dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
+      dplyr::select(.data$id, .data$item, .data$resp)
+    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+  }
+  return(resp_new)
+}
+```
+
+This function: 1. For the first iteration, selects the first 5 items 2.
+For subsequent iterations, calculates Fisher information for each
+available item at each respondent’s current ability estimate 3. Selects
+the item with maximum information for each respondent 4. Uses the 2PL
+information function:
+$I(\theta) = a^{2} \cdot P(\theta) \cdot \left( 1 - P(\theta) \right)$
+
+## Best Practices
+
+1.  **Handle the first iteration**: Always check if `resp_cur` is `NULL`
+    and return an appropriate initial set of responses
+2.  **Use anti_join**: Always use
+    [`dplyr::anti_join()`](https://dplyr.tidyverse.org/reference/filter-joins.html)
+    to find unadministered items
+3.  **Return proper format**: Ensure your function returns a dataframe
+    with `id`, `item`, and `resp` columns
+4.  **Consider exposure control**: Use the `adj_mat` parameter to
+    implement exposure control if needed
+5.  **Document parameters**: Clearly document any additional parameters
+    your function accepts
+6.  **Test thoroughly**: Test your function with various scenarios
+    before using it in simulations
+
+## Using Custom Functions
+
+To use a custom item selection function in a simulation:
+
+``` r
+# Define your custom function
+my_select_function <- function(pers, item, resp, resp_cur = NULL, adj_mat = NULL, ...) {
+  # Your implementation here
+}
+
+# Use it in simulation
+results <- meow(
+  select_fun = my_select_function,
+  update_fun = update_theta_mle,
+  data_loader = data_simple_1pl,
+  select_args = list(custom_param = 0.5),
+  data_args = list(N_persons = 100, N_items = 50)
+)
+```

@@ -1,0 +1,55 @@
+# Item selection function based on network distance criterion.
+
+This item selection function delivers the item farthest in the network
+from the items a respondent has already answered, with edges weighted by
+the inverse of their entry in the item-item adjacency matrix. Ties are
+broken using the maximum information criterion.
+
+## Usage
+
+``` r
+select_max_dist(
+  pers,
+  item,
+  resp,
+  resp_cur = NULL,
+  adj_mat = NULL,
+  n_candidates = 1
+)
+```
+
+## Arguments
+
+- pers:
+
+  A dataframe of current respondent ability estimates.
+
+- item:
+
+  A dataframe of current item parameter estimates.
+
+- resp:
+
+  A long-form dataframe of all potential pre-simulated item responses.
+
+- resp_cur:
+
+  A long-form dataframe of administered item responses.
+
+- adj_mat:
+
+  An item-item adjacency matrix, where each entry is the count of
+  individuals who have respondent to both item i and item j. See
+  documentation for `construct_adj_mat`
+
+- n_candidates:
+
+  A parameter that allows the assembly of a pool of \$N\$ farthest
+  items, before selecting the next item according to maximum
+  information. Allows users to balance exposure patterns away from
+  increased network density and toward more efficient estimation.
+
+## Value
+
+A long-form dataframe of all previously administered item responses with
+the new responses from this iteration appended to the end.

@@ -1,0 +1,120 @@
+# meow
+
+[![License:
+MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+`meow` is a package for conducting simulations of computer adaptive
+testing (CAT). The pitch here is that `meow` is a framework that
+facilitates reproducible comparisons between different combinations of
+data generating processes (DGPs), item selection algorithms, and
+parameter update algorithms.
+
+We do this by functionalizing these components as treating them modular
+for use in a core simulation harness that produces consistent outputs
+with some `ggplot2`-based visualization tools. The goal is to expose the
+structure of these component functions to the user, allowing them to
+implement their own custom DGPs, selection algorithms, and update
+algorithms.
+
+Users are also encouraged to contribute function modules associated with
+their research projects, facilitating more community interaction.
+
+## Installation
+
+Interested users can install using:
+
+    # install.packages("remotes")
+    remotes::install_github("klintkanopka/meow")
+
+# Package index
+
+## Simulation Function
+
+The core of any individual simulation.
+
+- [`meow()`](http://klintkanopka.com/meow/reference/meow.md) : Conducts
+  a full CAT simulation.
+
+## Data Loaders
+
+Load existing or simulate new data for use in a `meow` simulation.
+
+- [`data_existing()`](http://klintkanopka.com/meow/reference/data_existing.md)
+  : Load data from existing files
+- [`data_simple_1pl()`](http://klintkanopka.com/meow/reference/data_simple_1pl.md)
+  : A default data generation function that simulates normally
+  distributed respondent abilities and item difficulties
+
+## Selection Functions
+
+Included item selection algorithms.
+
+- [`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
+  : Item selection function based on network distance criterion.
+- [`select_max_dist_enhanced()`](http://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
+  : Enhanced network-based item selection with configurable edge weights
+- [`select_max_info()`](http://klintkanopka.com/meow/reference/select_max_info.md)
+  : Item selection function that delivers the the remaining item with
+  the highest information.
+- [`select_random()`](http://klintkanopka.com/meow/reference/select_random.md)
+  : Item selection function that delivers an item an item drawn at
+  random from the item bank to each respondent.
+- [`select_sequential()`](http://klintkanopka.com/meow/reference/select_sequential.md)
+  : Item selection function that delivers the next item by item id
+  number, simulating a fixed test form.
+
+## Parameter Update Functions
+
+Included parameter update functions. Note that some only operate on
+person parameters, while others simultaneously update person and item
+parameters.
+
+- [`update_maths_garden()`](http://klintkanopka.com/meow/reference/update_maths_garden.md)
+  : Elo-style updates of person and item parameters
+- [`update_prowise_learn()`](http://klintkanopka.com/meow/reference/update_prowise_learn.md)
+  : Elo-style updates of person and item parameters
+- [`update_theta_mle()`](http://klintkanopka.com/meow/reference/update_theta_mle.md)
+  : Updated person parameters based on MLE estimates
+
+## Utilities
+
+Additional helper functions.
+
+- [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md)
+  : Constructs an item pool adjacency matrix.
+- [`edge_weight_inverse()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
+  [`edge_weight_negative_log()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
+  [`edge_weight_linear()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
+  [`edge_weight_power()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
+  [`edge_weight_exponential()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
+  : Alternative edge weight functions for network-based item selection
+
+# Articles
+
+### Getting Started
+
+Start-to-finish simulation workflows
+
+- [Visualizing Item Exposure Control
+  Methods](http://klintkanopka.com/meow/articles/meow-viz.md):
+
+### Building Blocks
+
+The structure and design of the core components of the `meow` framework
+
+- [Data Loaders](http://klintkanopka.com/meow/articles/data-loaders.md):
+- [Item Selection
+  Functions](http://klintkanopka.com/meow/articles/item-selection.md):
+- [Parameter Update
+  Functions](http://klintkanopka.com/meow/articles/parameter-update.md):
+
+### Implementations
+
+Deeper dives into specific implementations
+
+- [Implementing the Maths Garden Update
+  Algorithm](http://klintkanopka.com/meow/articles/maths-garden-update.md):
+- [Implementing the Prowise Learn Update
+  Algorithm](http://klintkanopka.com/meow/articles/prowise-learn-update.md):
+- [Network-Based Item
+  Selection](http://klintkanopka.com/meow/articles/network-item-selection.md):
