@@ -1,283 +1,218 @@
-#' Item selection function that delivers the next item by item id number, simulating a fixed test form.
-#'
-#' This function just administers the next item in a form, with the within-person item ordering being governed by the ordering the rows in the `resp` dataframe.
-#'
-#' @param pers A dataframe of current respondent ability estimates.
-#' @param item A dataframe of current item parameter estimates.
-#' @param resp A long-form dataframe of all potential pre-simulated item responses.
-#' @param resp_cur A long-form dataframe of administered item responses.
-#' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
-#' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
-#'
-#' @export
-#' @importFrom rlang .data
-select_sequential <- function(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL
-) {
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    ) |>
-      dplyr::slice_head(n = 1, by = .data$id)
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+# Internal helper: administer the first `n` items to every respondent.
+# Used by the bundled selectors to seed the simulation on the first iteration.
+.administer_initial <- function(admin, n = 5) {
+  n_init <- min(n, ncol(admin))
+  admin[, seq_len(n_init)] <- 1L
+  admin
+}
+
+# Internal helper: 2PL item information for every respondent-item combination.
+# Returns a respondents-by-items matrix of a^2 * p * (1 - p).
+.info_matrix <- function(theta, a, b) {
+  lin <- sweep(outer(theta, b, '-'), 2, a, '*')
+  P <- stats::plogis(lin)
+  sweep(P * (1 - P), 2, a^2, '*')
+}
+
+# Internal helper: network-distance item selection shared by select_max_dist()
+# and select_max_dist_enhanced(). For each respondent with unadministered items,
+# selects the unadministered item farthest (in the weighted item graph) from the
+# items already administered, breaking ties with the maximum information
+# criterion. `dist_mat` is a precomputed item-item distance matrix.
+.select_by_distance <- function(pers, item, admin, dist_mat, n_candidates) {
+  info <- .info_matrix(pers$theta, item$a, item$b)
+  needs_item <- which(rowSums(admin == 0) > 0)
+  for (i in needs_item) {
+    administered <- which(admin[i, ] != 0)
+    candidates <- which(admin[i, ] == 0)
+    # Distance from each candidate to the nearest administered item.
+    sub <- dist_mat[administered, candidates, drop = FALSE]
+    cand_dist <- if (length(administered) == 1L) {
+      sub[1, ]
+    } else {
+      Rfast::colMins(sub, value = TRUE)
+    }
+    if (n_candidates == 1L) {
+      threshold <- max(cand_dist)
+    } else {
+      k <- min(n_candidates, length(cand_dist))
+      threshold <- sort(cand_dist, decreasing = TRUE)[k]
+    }
+    pool <- candidates[cand_dist >= threshold]
+    pick <- pool[which.max(info[i, pool])]
+    admin[i, pick] <- 1L
   }
-  return(resp_new)
+  admin
 }
 
 
-#' Item selection function that delivers an item an item drawn at random from the item bank to each respondent.
+#' Item selection by item id, simulating a fixed test form.
 #'
-#' Each respondent has their own next item drawn at random from the remaining items.
+#' This function administers the next unadministered item to each respondent in
+#' increasing item-id order, producing a fixed linear test form.
 #'
-#' @param pers A dataframe of current respondent ability estimates.
-#' @param item A dataframe of current item parameter estimates.
-#' @param resp A long-form dataframe of all potential pre-simulated item responses.
-#' @param resp_cur A long-form dataframe of administered item responses.
-#' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
-#' @param select_seed A random seed used only for item selection. Cleared each time this function is run.
-#' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#' @param pers A data frame of current respondent ability estimates.
+#' @param item A data frame of current item parameter estimates.
+#' @param R A respondent-by-item matrix of potential responses.
+#' @param admin An integer administration matrix; `0` indicates an item has not
+#'   been administered to a respondent. See [meow()] for details.
+#' @param adj_mat An item-item adjacency matrix. See [construct_adj_mat()].
+#' @returns An updated administration matrix with each respondent's next item
+#'   marked as administered.
+#'
+#' @examples
+#' sim <- meow(select_sequential, update_theta_mle, data_simple_1pl,
+#'             data_args = list(N_persons = 10, N_items = 10), fix = "item")
+#' nrow(sim$results)
 #'
 #' @export
-#' @importFrom rlang .data
-select_random <- function(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL,
-  select_seed = NULL
-) {
-  # note default behavior is cleared seed, to ensure variation between runs
+select_sequential <- function(pers, item, R, admin, adj_mat = NULL) {
+  if (!any(admin != 0)) {
+    return(.administer_initial(admin))
+  }
+  unadmin <- admin == 0
+  has <- which(rowSums(unadmin) > 0)
+  if (length(has) > 0) {
+    nextcol <- max.col(unadmin[has, , drop = FALSE] + 0, ties.method = 'first')
+    admin[cbind(has, nextcol)] <- 1L
+  }
+  return(admin)
+}
 
+
+#' Item selection by random draw from the remaining item bank.
+#'
+#' Each respondent's next item is drawn at random from the items they have not
+#' yet been administered.
+#'
+#' @inheritParams select_sequential
+#' @param select_seed A random seed used only for item selection. The seed is
+#'   cleared after use so that successive simulations vary unless a seed is given.
+#' @returns An updated administration matrix with a random next item marked for
+#'   each respondent.
+#'
+#' @examples
+#' sim <- meow(select_random, update_theta_mle, data_simple_1pl,
+#'             data_args = list(N_persons = 10, N_items = 10), fix = "item",
+#'             select_args = list(select_seed = 1))
+#' nrow(sim$results)
+#'
+#' @export
+select_random <- function(pers, item, R, admin, adj_mat = NULL, select_seed = NULL) {
+  # note default behavior is a cleared seed, to ensure variation between runs
   set.seed(select_seed)
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    ) |>
-      dplyr::slice_sample(n = 1, by = .data$id)
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+  if (!any(admin != 0)) {
+    set.seed(NULL)
+    return(.administer_initial(admin))
+  }
+  for (i in which(rowSums(admin == 0) > 0)) {
+    candidates <- which(admin[i, ] == 0)
+    pick <- candidates[sample.int(length(candidates), 1)]
+    admin[i, pick] <- 1L
   }
   set.seed(NULL)
-  return(resp_new)
+  return(admin)
 }
 
 
-#' Item selection function that delivers the the remaining item with the highest information.
+#' Item selection by maximum Fisher information.
 #'
-#' Information calculation is based upon current parameter estimates and a 2PL item response function.
+#' Administers the remaining item with the highest information for each
+#' respondent, computed from the current parameter estimates and a 2PL item
+#' response function.
 #'
-#' @param pers A dataframe of current respondent ability estimates.
-#' @param item A dataframe of current item parameter estimates.
-#' @param resp A long-form dataframe of all potential pre-simulated item responses.
-#' @param resp_cur A long-form dataframe of administered item responses.
-#' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
-#' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#' @inheritParams select_sequential
+#' @returns An updated administration matrix with the most informative remaining
+#'   item marked for each respondent.
+#'
+#' @examples
+#' sim <- meow(select_max_info, update_theta_mle, data_simple_1pl,
+#'             data_args = list(N_persons = 10, N_items = 10), fix = "item")
+#' nrow(sim$results)
 #'
 #' @export
-#' @importFrom rlang .data
-select_max_info <- function(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL
-) {
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    ) |>
-      dplyr::left_join(pers, by = 'id') |>
-      dplyr::left_join(item, by = 'item') |>
-      dplyr::mutate(
-        info = .data$a^2 *
-          stats::plogis(.data$a * (.data$theta - .data$b)) *
-          (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
-      ) |>
-      dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
-      dplyr::select(.data$id, .data$item, .data$resp)
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+select_max_info <- function(pers, item, R, admin, adj_mat = NULL) {
+  if (!any(admin != 0)) {
+    return(.administer_initial(admin))
   }
-  return(resp_new)
-}
-
-
-#' Item selection function based on network distance criterion.
-#'
-#' This item selection function delivers the item farthest in the network from the items a respondent has already answered, with edges weighted by the inverse of their entry in the item-item adjacency matrix. Ties are broken using the maximum information criterion.
-#'
-#' @param pers A dataframe of current respondent ability estimates.
-#' @param item A dataframe of current item parameter estimates.
-#' @param resp A long-form dataframe of all potential pre-simulated item responses.
-#' @param resp_cur A long-form dataframe of administered item responses.
-#' @param adj_mat An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for `construct_adj_mat`
-#' @param n_candidates A parameter that allows the assembly of a pool of $N$ farthest items, before selecting the next item according to maximum information. Allows users to balance exposure patterns away from increased network density and toward more efficient estimation.
-#' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
-#'
-#' @export
-#' @importFrom rlang .data
-select_max_dist <- function(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL,
-  n_candidates = 1
-) {
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    # here is where you can adjust edge weights in the distance calculation
-    dist_mat <- Rfast::floyd(1 / adj_mat)
-
-    local_items <- resp_cur |>
-      dplyr::select(.data$id, .data$item) |>
-      dplyr::group_by(.data$id) |>
-      dplyr::mutate(seq = 1:dplyr::n()) |>
-      dplyr::ungroup() |>
-      tidyr::pivot_wider(
-        id_cols = .data$id,
-        names_from = .data$seq,
-        names_prefix = 'item_',
-        values_from = .data$item
-      ) |>
-      dplyr::arrange(.data$id) |>
-      dplyr::select(-.data$id) |>
-      as.matrix()
-
-    get_distance <- function(id, item, dist_mat, local_items) {
-      dist <- min(dist_mat[local_items[id, ], item])
-      return(dist)
-    }
-
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    )
-
-    if (nrow(resp_new) > 0) {
-      resp_new <- resp_new |>
-        dplyr::rowwise() |>
-        dplyr::mutate(
-          distance = get_distance(.data$id, .data$item, dist_mat, local_items)
-        ) |>
-        dplyr::ungroup() |>
-        dplyr::slice_max(.data$distance, n = n_candidates, by = .data$id) |>
-        dplyr::left_join(pers, by = 'id') |>
-        dplyr::left_join(item, by = 'item') |>
-        dplyr::mutate(
-          info = .data$a^2 *
-            stats::plogis(.data$a * (.data$theta - .data$b)) *
-            (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
-        ) |>
-        dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
-        dplyr::select(.data$id, .data$item, .data$resp)
-    }
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+  info <- .info_matrix(pers$theta, item$a, item$b)
+  info[admin != 0] <- -Inf
+  has <- which(rowSums(admin == 0) > 0)
+  if (length(has) > 0) {
+    pick <- max.col(info[has, , drop = FALSE], ties.method = 'first')
+    admin[cbind(has, pick)] <- 1L
   }
-  return(resp_new)
+  return(admin)
 }
 
 
-#' Enhanced network-based item selection with configurable edge weights
+#' Item selection by network distance criterion.
 #'
-#' This function extends `select_max_dist` with flexible edge weight calculations.
+#' Administers the item farthest in the item network from the items a respondent
+#' has already answered, with edges weighted by the inverse of their entry in the
+#' item-item adjacency matrix. Ties are broken using the maximum information
+#' criterion.
 #'
-#' @param pers A dataframe of current respondent ability estimates.
-#' @param item A dataframe of current item parameter estimates.
-#' @param resp A long-form dataframe of all potential pre-simulated item responses.
-#' @param resp_cur A long-form dataframe of administered item responses.
-#' @param adj_mat An item-item adjacency matrix.
-#' @param n_candidates Number of farthest items to consider before applying information criterion.
-#' @param edge_weight_fun Function to calculate edge weights from adjacency matrix.
-#' @param edge_weight_args Additional arguments for the edge weight function.
-#' @returns A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+#' @inheritParams select_sequential
+#' @param n_candidates The number of farthest items to assemble into a candidate
+#'   pool before selecting the next item by maximum information. Allows users to
+#'   trade off network density against estimation efficiency.
+#' @returns An updated administration matrix with the selected item marked for
+#'   each respondent.
+#'
+#' @examples
+#' sim <- meow(select_max_dist, update_theta_mle, data_simple_1pl,
+#'             data_args = list(N_persons = 10, N_items = 10), fix = "item")
+#' nrow(sim$results)
 #'
 #' @export
-#' @importFrom rlang .data
+select_max_dist <- function(pers, item, R, admin, adj_mat = NULL, n_candidates = 1) {
+  if (!any(admin != 0)) {
+    return(.administer_initial(admin))
+  }
+  # Edge weights can be adjusted here; the inverse of the co-response count is
+  # the default. See select_max_dist_enhanced() for configurable weights.
+  dist_mat <- Rfast::floyd(1 / adj_mat)
+  .select_by_distance(pers, item, admin, dist_mat, n_candidates)
+}
+
+
+#' Network-based item selection with configurable edge weights.
+#'
+#' Extends [select_max_dist()] with a flexible edge weight calculation.
+#'
+#' @inheritParams select_max_dist
+#' @param edge_weight_fun A function that computes edge weights from the
+#'   adjacency matrix. See [edge_weight_inverse()].
+#' @param edge_weight_args A named list of additional arguments for
+#'   `edge_weight_fun`.
+#' @returns An updated administration matrix with the selected item marked for
+#'   each respondent.
+#'
+#' @examples
+#' sim <- meow(select_max_dist_enhanced, update_theta_mle, data_simple_1pl,
+#'             data_args = list(N_persons = 10, N_items = 10), fix = "item",
+#'             select_args = list(edge_weight_fun = edge_weight_power))
+#' nrow(sim$results)
+#'
+#' @export
 select_max_dist_enhanced <- function(
   pers,
   item,
-  resp,
-  resp_cur = NULL,
+  R,
+  admin,
   adj_mat = NULL,
   n_candidates = 1,
   edge_weight_fun = edge_weight_inverse,
   edge_weight_args = list()
 ) {
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    # Calculate edge weights using the specified function
-    edge_weights <- do.call(
-      edge_weight_fun,
-      c(list(adj_mat = adj_mat), edge_weight_args)
-    )
-
-    # Compute distance matrix using Floyd-Warshall
-    dist_mat <- Rfast::floyd(edge_weights)
-
-    local_items <- resp_cur |>
-      dplyr::select(.data$id, .data$item) |>
-      dplyr::group_by(.data$id) |>
-      dplyr::mutate(seq = 1:dplyr::n()) |>
-      dplyr::ungroup() |>
-      tidyr::pivot_wider(
-        id_cols = .data$id,
-        names_from = .data$seq,
-        names_prefix = 'item_',
-        values_from = .data$item
-      ) |>
-      dplyr::arrange(.data$id) |>
-      dplyr::select(-.data$id) |>
-      as.matrix()
-
-    get_distance <- function(id, item, dist_mat, local_items) {
-      dist <- min(dist_mat[local_items[id, ], item])
-      return(dist)
-    }
-
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    )
-
-    if (nrow(resp_new) > 0) {
-      resp_new <- resp_new |>
-        dplyr::rowwise() |>
-        dplyr::mutate(
-          distance = get_distance(.data$id, .data$item, dist_mat, local_items)
-        ) |>
-        dplyr::ungroup() |>
-        dplyr::slice_max(.data$distance, n = n_candidates, by = .data$id) |>
-        dplyr::left_join(pers, by = 'id') |>
-        dplyr::left_join(item, by = 'item') |>
-        dplyr::mutate(
-          info = .data$a^2 *
-            stats::plogis(.data$a * (.data$theta - .data$b)) *
-            (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
-        ) |>
-        dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
-        dplyr::select(.data$id, .data$item, .data$resp)
-    }
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+  if (!any(admin != 0)) {
+    return(.administer_initial(admin))
   }
-  return(resp_new)
+  edge_weights <- do.call(
+    edge_weight_fun,
+    c(list(adj_mat = adj_mat), edge_weight_args)
+  )
+  dist_mat <- Rfast::floyd(edge_weights)
+  .select_by_distance(pers, item, admin, dist_mat, n_candidates)
 }

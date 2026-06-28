@@ -2,24 +2,39 @@
 % Please edit documentation in R/update-parameters.R
 \name{update_maths_garden}
 \alias{update_maths_garden}
-\title{Elo-style updates of person and item parameters}
+\title{Elo-style updates of person and item parameters (Maths Garden).}
 \usage{
-update_maths_garden(pers, item, resp, K_theta = 0.1, K_b = 0.1)
+update_maths_garden(pers, item, R, admin, K_theta = 0.1, K_b = 0.1)
 }
 \arguments{
-\item{pers}{A dataframe of current respondent parameter estimates.}
+\item{pers}{A data frame of current respondent parameter estimates.}
 
-\item{item}{A dataframe of current item parameter estimates.}
+\item{item}{A data frame of current item parameter estimates.}
 
-\item{resp}{A long-form dataframe of only observed item responses.}
+\item{R}{A respondent-by-item matrix of potential responses.}
 
-\item{K_theta}{User supplied learning rate for person ability updates. Defaults to 0.1}
+\item{admin}{An integer administration matrix; non-zero entries indicate
+administered items. See \code{\link[=meow]{meow()}} for details.}
 
-\item{K_b}{User supplied learning rate for item difficulty updates. Defaults to 0.1}
+\item{K_theta}{Learning rate for person ability updates. Defaults to 0.1.}
+
+\item{K_b}{Learning rate for item difficulty updates. Defaults to 0.1.}
 }
 \value{
-An list of three objects, two of which are updated from the function input: \code{pers} is a dataframe with updated respondent parameter estimates, \code{item} is the dataframe of updated item parameter estimates. \code{resp_cur} is the dataframe of observed item responses.
+A list with two entries: \code{pers} and \code{item}, the data frames of
+updated respondent and item parameter estimates.
 }
 \description{
-This update function updates both person and item parameters according to the approach from the paper "Computer adaptive practice of Maths ability using a new item response model for on the fly ability and difficulty estimation" (Klinkenberg, Straatemeier, and van der Maas, 2011). Learning rates are tunable using supplied \code{K_theta} and \code{K_b} arguments.
+Updates both person and item parameters following Klinkenberg, Straatemeier,
+and van der Maas (2011), "Computer adaptive practice of Maths ability using a
+new item response model for on the fly ability and difficulty estimation."
+Learning rates are tunable through \code{K_theta} and \code{K_b}.
+}
+\examples{
+data <- data_simple_1pl(N_persons = 10, N_items = 10)
+admin <- matrix(0L, 10, 10)
+admin[, 1:5] <- 1L
+R <- matrix(data$resp$resp, nrow = 10, byrow = TRUE)
+upd <- update_maths_garden(data$pers_tru, data$item_tru, R, admin)
+
 }

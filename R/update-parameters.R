@@ -1,163 +1,145 @@
-#' Updated person parameters based on MLE estimates
+#' Update person ability via maximum likelihood estimation.
 #'
-#' This update function treats item parameters as fixed and known, updating person ability estimates after each iteration according to a maximum likelihood estimate based upon a 2PL item response function.
+#' This update function treats item parameters as fixed and known and updates
+#' person ability estimates after each iteration with a maximum likelihood
+#' estimate based on a 2PL item response function.
 #'
-#' @param pers A dataframe of current respondent parameter estimates.
-#' @param item A dataframe of item parameter values.
-#' @param resp A long-form dataframe of only observed item responses.
-#' @returns An list of three objects, only one of which is updated from the function input: `pers` is a dataframe with updated respondent parameter estimates, `item` is the dataframe of item parameter values. `resp_cur` is the dataframe of observed item responses.
+#' @param pers A data frame of current respondent parameter estimates.
+#' @param item A data frame of item parameter values.
+#' @param R A respondent-by-item matrix of potential responses.
+#' @param admin An integer administration matrix; non-zero entries indicate
+#'   administered items. See [meow()] for details.
+#' @returns A list with two entries: `pers`, a data frame with updated respondent
+#'   ability estimates, and `item`, the unchanged data frame of item parameters.
+#'
+#' @examples
+#' data <- data_simple_1pl(N_persons = 10, N_items = 10)
+#' admin <- matrix(0L, 10, 10)
+#' admin[, 1:5] <- 1L
+#' R <- matrix(data$resp$resp, nrow = 10, byrow = TRUE)
+#' upd <- update_theta_mle(data$pers_tru, data$item_tru, R, admin)
+#' head(upd$pers)
 #'
 #' @export
-update_theta_mle <- function(pers, item, resp) {
-  # unidimensional 2PL MLE estimation of ability, treating item params as fixed
-  theta_mle <- function(pers, item, resp) {
-    loglik <- function(theta, item, resp) {
-      p <- stats::plogis(
-        item$a[resp$item] * (theta[resp$id] - item$b[resp$item])
-      )
-      ll <- sum(resp$resp * log(p) + (1 - resp$resp) * log(1 - p))
-      return(ll)
-    }
+update_theta_mle <- function(pers, item, R, admin) {
+  idx <- which(admin != 0, arr.ind = TRUE)
+  person <- idx[, 1]
+  itm <- idx[, 2]
+  resp <- R[idx]
 
-    est <- stats::optim(
-      pers$theta,
-      loglik,
-      lower = -4,
-      upper = 4,
-      item = item,
-      resp = resp,
-      method = 'L-BFGS-B',
-      control = list(fnscale = -1)
-    )
-
-    return(est$par)
+  loglik <- function(theta) {
+    p <- stats::plogis(item$a[itm] * (theta[person] - item$b[itm]))
+    sum(resp * log(p) + (1 - resp) * log(1 - p))
   }
 
-  pers$theta <- theta_mle(pers, item, resp)
-
-  out <- list(
-    pers = pers,
-    item = item,
-    resp_cur = resp
+  est <- stats::optim(
+    pers$theta,
+    loglik,
+    lower = -4,
+    upper = 4,
+    method = 'L-BFGS-B',
+    control = list(fnscale = -1)
   )
-  return(out)
+
+  pers$theta <- est$par
+  list(pers = pers, item = item)
 }
 
 
-#' Elo-style updates of person and item parameters
+#' Elo-style updates of person and item parameters (Maths Garden).
 #'
-#' This update function updates both person and item parameters according to the approach from the paper "Computer adaptive practice of Maths ability using a new item response model for on the fly ability and difficulty estimation" (Klinkenberg, Straatemeier, and van der Maas, 2011). Learning rates are tunable using supplied `K_theta` and `K_b` arguments.
+#' Updates both person and item parameters following Klinkenberg, Straatemeier,
+#' and van der Maas (2011), "Computer adaptive practice of Maths ability using a
+#' new item response model for on the fly ability and difficulty estimation."
+#' Learning rates are tunable through `K_theta` and `K_b`.
 #'
-#' @param pers A dataframe of current respondent parameter estimates.
-#' @param item A dataframe of current item parameter estimates.
-#' @param resp A long-form dataframe of only observed item responses.
-#' @param K_theta User supplied learning rate for person ability updates. Defaults to 0.1
-#' @param K_b User supplied learning rate for item difficulty updates. Defaults to 0.1
-#' @returns An list of three objects, two of which are updated from the function input: `pers` is a dataframe with updated respondent parameter estimates, `item` is the dataframe of updated item parameter estimates. `resp_cur` is the dataframe of observed item responses.
+#' @inheritParams update_theta_mle
+#' @param item A data frame of current item parameter estimates.
+#' @param K_theta Learning rate for person ability updates. Defaults to 0.1.
+#' @param K_b Learning rate for item difficulty updates. Defaults to 0.1.
+#' @returns A list with two entries: `pers` and `item`, the data frames of
+#'   updated respondent and item parameter estimates.
+#'
+#' @examples
+#' data <- data_simple_1pl(N_persons = 10, N_items = 10)
+#' admin <- matrix(0L, 10, 10)
+#' admin[, 1:5] <- 1L
+#' R <- matrix(data$resp$resp, nrow = 10, byrow = TRUE)
+#' upd <- update_maths_garden(data$pers_tru, data$item_tru, R, admin)
 #'
 #' @export
-update_maths_garden <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
-  # Implement the update rule from the maths garden paper
-  # Theta_hat_j = theta_j + K_j (S_ij - E(S_ij))
-  # Beta_hat_i = beta_i + K_i(E(S_ij)-S_ij)
-  # where S_ij is the observed score and E(S_ij) is the expected probability
+update_maths_garden <- function(pers, item, R, admin, K_theta = 0.1, K_b = 0.1) {
+  # Theta_hat_j = theta_j + K_theta * (S_ij - E(S_ij))
+  # Beta_hat_i  = beta_i  + K_b     * (E(S_ij) - S_ij)
+  idx <- which(admin != 0, arr.ind = TRUE)
+  person <- idx[, 1]
+  itm <- idx[, 2]
+  resp <- R[idx]
 
-  # Calculate expected probabilities using logistic function
-  E_Sij <- stats::plogis(pers$theta[resp$id] - item$b[resp$item])
+  E_Sij <- stats::plogis(pers$theta[person] - item$b[itm])
 
-  # Update theta (ability) for each person
-  theta_updated <- pers$theta
-  for (j in unique(resp$id)) {
-    # Get responses for person j
-    resp_j <- resp[resp$id == j, ]
-    # Calculate update term
-    update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
-    theta_updated[j] <- pers$theta[j] + update_term
-  }
+  dtheta <- tapply(resp - E_Sij, person, sum)
+  pers$theta[as.integer(names(dtheta))] <-
+    pers$theta[as.integer(names(dtheta))] + K_theta * dtheta
 
-  pers$theta <- theta_updated
+  db <- tapply(E_Sij - resp, itm, sum)
+  item$b[as.integer(names(db))] <-
+    item$b[as.integer(names(db))] + K_b * db
 
-  # Update beta (difficulty) for each item
-  b_updated <- item$b
-  for (i in unique(resp$item)) {
-    # Get responses for item i
-    resp_i <- resp[resp$item == i, ]
-    # Calculate update term
-    update_term <- K_b * sum(E_Sij[resp$item == i] - resp_i$resp)
-    b_updated[i] <- item$b[i] + update_term
-  }
-
-  item$b <- b_updated
-
-  out <- list(
-    pers = pers,
-    item = item,
-    resp_cur = resp
-  )
-  return(out)
+  list(pers = pers, item = item)
 }
 
 
-#' Elo-style updates of person and item parameters
+#' Elo-style updates with paired item comparisons (Prowise Learn).
 #'
-#' This update function updates both person and item parameters according to the approach from the paper "Psychometrics of an Elo-based large-scale online learning system" (Vermeiren, et al. 2025)
+#' Updates both person and item parameters following Vermeiren et al. (2025),
+#' "Psychometrics of an Elo-based large-scale online learning system." Item
+#' difficulties are updated using paired comparisons of consecutively
+#' administered items, which controls the rating drift that can occur with naive
+#' Elo updates.
 #'
-#' @param pers A dataframe of current respondent parameter estimates.
-#' @param item A dataframe of current item parameter estimates.
-#' @param resp A long-form dataframe of only observed item responses.
-#' @param K_theta User supplied learning rate for person ability updates. Defaults to 0.1
-#' @param K_b User supplied learning rate for item difficulty updates. Defaults to 0.1
-#' @returns An list of three objects, two of which are updated from the function input: `pers` is a dataframe with updated respondent parameter estimates, `item` is the dataframe of updated item parameter estimates. `resp_cur` is the dataframe of observed item responses.
+#' @inheritParams update_maths_garden
+#' @returns A list with two entries: `pers` and `item`, the data frames of
+#'   updated respondent and item parameter estimates.
+#'
+#' @examples
+#' data <- data_simple_1pl(N_persons = 10, N_items = 10)
+#' admin <- matrix(0L, 10, 10)
+#' admin[, 1:5] <- 1L
+#' R <- matrix(data$resp$resp, nrow = 10, byrow = TRUE)
+#' upd <- update_prowise_learn(data$pers_tru, data$item_tru, R, admin)
 #'
 #' @export
-update_prowise_learn <- function(pers, item, resp, K_theta = 0.1, K_b = 0.1) {
-  # Implement the update rule from the Prowise Learn paper with paired item updates
-  # to prevent rating drift
+update_prowise_learn <- function(pers, item, R, admin, K_theta = 0.1, K_b = 0.1) {
+  # Responses in administration order (by respondent, then order administered).
+  long <- meow_long(R, admin)
+  E_Sij <- stats::plogis(pers$theta[long$id] - item$b[long$item])
 
-  # Initialize updated parameters
-  theta_updated <- theta <- pers$theta
-  diff_updated <- diff <- pers$b
+  # Ability update (as in Maths Garden).
+  dtheta <- tapply(long$resp - E_Sij, long$id, sum)
+  pers$theta[as.integer(names(dtheta))] <-
+    pers$theta[as.integer(names(dtheta))] + K_theta * dtheta
 
-  # Calculate expected probabilities for all responses
-  E_Sij <- stats::plogis(theta[resp$id] - diff[resp$item])
-
-  # Update theta (ability) for each person
-  for (j in unique(resp$id)) {
-    resp_j <- resp[resp$id == j, ]
-    update_term <- K_theta * sum(resp_j$resp - E_Sij[resp$id == j])
-    theta_updated[j] <- theta[j] + update_term
-  }
-
-  # Paired item updates
-  update_count <- 0
-  for (person in unique(resp$id)) {
-    person_idx <- which(resp$id == person)
-    if (length(person_idx) >= 2) {
-      for (i in 2:length(person_idx)) {
-        idx_now <- person_idx[i]
-        idx_prev <- person_idx[i - 1]
-        item_now <- resp$item[idx_now]
-        item_prev <- resp$item[idx_prev]
-        s_now <- resp$resp[idx_now]
-        s_prev <- resp$resp[idx_prev]
-        e_now <- E_Sij[idx_now]
-        e_prev <- E_Sij[idx_prev]
-        kappa <- 0.5 * (K_b * (s_now - e_now) - K_b * (s_prev - e_prev))
-        diff_updated[item_now] <- diff_updated[item_now] + kappa
-        diff_updated[item_prev] <- diff_updated[item_prev] - kappa
-        update_count <- update_count + 1
-      }
+  # Paired item updates over consecutively administered items for each person.
+  n <- nrow(long)
+  if (n >= 2) {
+    nxt <- 2:n
+    prv <- 1:(n - 1)
+    pair <- which(long$id[nxt] == long$id[prv])
+    if (length(pair) > 0) {
+      now <- nxt[pair]
+      pre <- prv[pair]
+      kappa <- 0.5 *
+        (K_b * (long$resp[now] - E_Sij[now]) -
+          K_b * (long$resp[pre] - E_Sij[pre]))
+      add_now <- tapply(kappa, long$item[now], sum)
+      add_pre <- tapply(-kappa, long$item[pre], sum)
+      item$b[as.integer(names(add_now))] <-
+        item$b[as.integer(names(add_now))] + add_now
+      item$b[as.integer(names(add_pre))] <-
+        item$b[as.integer(names(add_pre))] + add_pre
     }
   }
-  cat("Prowise item updates triggered:", update_count, "\n")
 
-  pers$theta <- theta_updated
-  item$b <- diff_updated
-
-  out <- list(
-    pers = pers,
-    item = item,
-    resp_cur = resp
-  )
-  return(out)
+  list(pers = pers, item = item)
 }

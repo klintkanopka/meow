@@ -1,79 +1,68 @@
-# Load test data
-out <- data_simple_1pl()
+out <- data_simple_1pl(N_persons = 8, N_items = 12, data_seed = 99)
+N <- nrow(out$pers_tru)
+M <- nrow(out$item_tru)
+R <- matrix(NA_real_, N, M)
+R[cbind(out$resp$id, out$resp$item)] <- out$resp$resp
 
-test_that("select_sequential() output is correctly formed", {
-  result <- select_sequential(
-    pers = out$pers_tru,
-    item = out$item_tru,
-    resp = out$resp
-  )
-  
-  expect_type(result, 'list')
-  expect_true(is.data.frame(result))
-  expect_true(all(c('id', 'item', 'resp') %in% names(result)))
+# A mid-simulation administration matrix: first 5 items given to everyone.
+admin_started <- matrix(0L, N, M)
+admin_started[, 1:5] <- 1L
+adj_started <- construct_adj_mat(admin_started)
+
+empty <- matrix(0L, N, M)
+
+test_that("selectors seed the first five items when nothing is administered", {
+  expect_equal(select_sequential(out$pers_tru, out$item_tru, R, empty), {
+    e <- empty; e[, 1:5] <- 1L; e
+  })
+  expect_equal(select_max_info(out$pers_tru, out$item_tru, R, empty), {
+    e <- empty; e[, 1:5] <- 1L; e
+  })
 })
 
-test_that("select_random() output is correctly formed", {
-  result <- select_random(
-    pers = out$pers_tru,
-    item = out$item_tru,
-    resp = out$resp
-  )
-  
-  expect_type(result, 'list')
-  expect_true(is.data.frame(result))
-  expect_true(all(c('id', 'item', 'resp') %in% names(result)))
+test_that("selectors return an administration matrix that adds exactly one item per person", {
+  for (nm in c("select_sequential", "select_max_info", "select_max_dist", "select_max_dist_enhanced")) {
+    fun <- get(nm)
+    res <- fun(out$pers_tru, out$item_tru, R, admin_started, adj_started)
+    expect_true(is.matrix(res), info = nm)
+    expect_equal(dim(res), c(N, M), info = nm)
+    # one new item administered to each respondent
+    expect_equal(rowSums(res != 0), rep(6, N), info = nm)
+    # never un-administers a previously administered item
+    expect_true(all(res[admin_started != 0] != 0), info = nm)
+  }
 })
 
-test_that("select_max_info() output is correctly formed", {
-  result <- select_max_info(
-    pers = out$pers_tru,
-    item = out$item_tru,
-    resp = out$resp
-  )
-  
-  expect_type(result, 'list')
-  expect_true(is.data.frame(result))
-  expect_true(all(c('id', 'item', 'resp') %in% names(result)))
+test_that("select_sequential administers items in increasing id order", {
+  res <- select_sequential(out$pers_tru, out$item_tru, R, admin_started, adj_started)
+  # next item for everyone should be item 6
+  expect_true(all(res[, 6] != 0))
+  expect_true(all(res[, 7] == 0))
 })
 
-test_that("select_max_dist() output is correctly formed", {
-  # Create a simple adjacency matrix for testing
-  adj_mat <- matrix(1, nrow = nrow(out$item_tru), ncol = nrow(out$item_tru))
-  diag(adj_mat) <- 0
-  
-  result <- select_max_dist(
-    pers = out$pers_tru,
-    item = out$item_tru,
-    resp = out$resp,
-    adj_mat = adj_mat
-  )
-  
-  expect_type(result, 'list')
-  expect_true(is.data.frame(result))
-  expect_true(all(c('id', 'item', 'resp') %in% names(result)))
+test_that("select_max_info picks the most informative remaining item", {
+  res <- select_max_info(out$pers_tru, out$item_tru, R, admin_started, adj_started)
+  new_item <- apply(res != 0 & admin_started == 0, 1, which)
+  a <- out$item_tru$a
+  b <- out$item_tru$b
+  theta <- out$pers_tru$theta
+  for (i in seq_len(N)) {
+    cand <- which(admin_started[i, ] == 0)
+    p <- stats::plogis(a[cand] * (theta[i] - b[cand]))
+    info <- a[cand]^2 * p * (1 - p)
+    expect_equal(new_item[i], cand[which.max(info)])
+  }
 })
 
-test_that("select_max_dist_enhanced() output is correctly formed", {
-  # Create a simple adjacency matrix for testing
-  adj_mat <- matrix(1, nrow = nrow(out$item_tru), ncol = nrow(out$item_tru))
-  diag(adj_mat) <- 0
-  
-  result <- select_max_dist_enhanced(
-    pers = out$pers_tru,
-    item = out$item_tru,
-    resp = out$resp,
-    adj_mat = adj_mat
-  )
-  
-  expect_type(result, 'list')
-  expect_true(is.data.frame(result))
-  expect_true(all(c('id', 'item', 'resp') %in% names(result)))
+test_that("select_random is reproducible with a fixed seed", {
+  r1 <- select_random(out$pers_tru, out$item_tru, R, admin_started, adj_started, select_seed = 5)
+  r2 <- select_random(out$pers_tru, out$item_tru, R, admin_started, adj_started, select_seed = 5)
+  expect_identical(r1, r2)
+  expect_equal(rowSums(r1 != 0), rep(6, N))
 })
 
 test_that("edge weight functions return matrices", {
   adj_mat <- matrix(1:4, nrow = 2, ncol = 2)
-  
   expect_true(is.matrix(edge_weight_inverse(adj_mat)))
   expect_true(is.matrix(edge_weight_negative_log(adj_mat)))
   expect_true(is.matrix(edge_weight_linear(adj_mat)))

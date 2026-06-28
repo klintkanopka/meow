@@ -2,20 +2,35 @@
 % Please edit documentation in R/update-parameters.R
 \name{update_theta_mle}
 \alias{update_theta_mle}
-\title{Updated person parameters based on MLE estimates}
+\title{Update person ability via maximum likelihood estimation.}
 \usage{
-update_theta_mle(pers, item, resp)
+update_theta_mle(pers, item, R, admin)
 }
 \arguments{
-\item{pers}{A dataframe of current respondent parameter estimates.}
+\item{pers}{A data frame of current respondent parameter estimates.}
 
-\item{item}{A dataframe of item parameter values.}
+\item{item}{A data frame of item parameter values.}
 
-\item{resp}{A long-form dataframe of only observed item responses.}
+\item{R}{A respondent-by-item matrix of potential responses.}
+
+\item{admin}{An integer administration matrix; non-zero entries indicate
+administered items. See \code{\link[=meow]{meow()}} for details.}
 }
 \value{
-An list of three objects, only one of which is updated from the function input: \code{pers} is a dataframe with updated respondent parameter estimates, \code{item} is the dataframe of item parameter values. \code{resp_cur} is the dataframe of observed item responses.
+A list with two entries: \code{pers}, a data frame with updated respondent
+ability estimates, and \code{item}, the unchanged data frame of item parameters.
 }
 \description{
-This update function treats item parameters as fixed and known, updating person ability estimates after each iteration according to a maximum likelihood estimate based upon a 2PL item response function.
+This update function treats item parameters as fixed and known and updates
+person ability estimates after each iteration with a maximum likelihood
+estimate based on a 2PL item response function.
+}
+\examples{
+data <- data_simple_1pl(N_persons = 10, N_items = 10)
+admin <- matrix(0L, 10, 10)
+admin[, 1:5] <- 1L
+R <- matrix(data$resp$resp, nrow = 10, byrow = TRUE)
+upd <- update_theta_mle(data$pers_tru, data$item_tru, R, admin)
+head(upd$pers)
+
 }

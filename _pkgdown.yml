@@ -8,6 +8,7 @@ articles:
   desc: Start-to-finish simulation workflows
   navbar: ~
   contents:
+  - extending-meow
   - meow-viz
 
 - title: Building Blocks
@@ -45,7 +46,9 @@ reference:
 - contents:
   - starts_with("update_")
 - title: Utilities
-  desc: Additional helper functions. 
+  desc: Additional helper functions.
 - contents:
   - construct_adj_mat
+  - meow_administered
+  - meow_long
   - starts_with("edge_weight_")

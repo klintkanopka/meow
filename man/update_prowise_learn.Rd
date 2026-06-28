@@ -2,24 +2,40 @@
 % Please edit documentation in R/update-parameters.R
 \name{update_prowise_learn}
 \alias{update_prowise_learn}
-\title{Elo-style updates of person and item parameters}
+\title{Elo-style updates with paired item comparisons (Prowise Learn).}
 \usage{
-update_prowise_learn(pers, item, resp, K_theta = 0.1, K_b = 0.1)
+update_prowise_learn(pers, item, R, admin, K_theta = 0.1, K_b = 0.1)
 }
 \arguments{
-\item{pers}{A dataframe of current respondent parameter estimates.}
+\item{pers}{A data frame of current respondent parameter estimates.}
 
-\item{item}{A dataframe of current item parameter estimates.}
+\item{item}{A data frame of current item parameter estimates.}
 
-\item{resp}{A long-form dataframe of only observed item responses.}
+\item{R}{A respondent-by-item matrix of potential responses.}
 
-\item{K_theta}{User supplied learning rate for person ability updates. Defaults to 0.1}
+\item{admin}{An integer administration matrix; non-zero entries indicate
+administered items. See \code{\link[=meow]{meow()}} for details.}
 
-\item{K_b}{User supplied learning rate for item difficulty updates. Defaults to 0.1}
+\item{K_theta}{Learning rate for person ability updates. Defaults to 0.1.}
+
+\item{K_b}{Learning rate for item difficulty updates. Defaults to 0.1.}
 }
 \value{
-An list of three objects, two of which are updated from the function input: \code{pers} is a dataframe with updated respondent parameter estimates, \code{item} is the dataframe of updated item parameter estimates. \code{resp_cur} is the dataframe of observed item responses.
+A list with two entries: \code{pers} and \code{item}, the data frames of
+updated respondent and item parameter estimates.
 }
 \description{
-This update function updates both person and item parameters according to the approach from the paper "Psychometrics of an Elo-based large-scale online learning system" (Vermeiren, et al. 2025)
+Updates both person and item parameters following Vermeiren et al. (2025),
+"Psychometrics of an Elo-based large-scale online learning system." Item
+difficulties are updated using paired comparisons of consecutively
+administered items, which controls the rating drift that can occur with naive
+Elo updates.
+}
+\examples{
+data <- data_simple_1pl(N_persons = 10, N_items = 10)
+admin <- matrix(0L, 10, 10)
+admin[, 1:5] <- 1L
+R <- matrix(data$resp$resp, nrow = 10, byrow = TRUE)
+upd <- update_prowise_learn(data$pers_tru, data$item_tru, R, admin)
+
 }

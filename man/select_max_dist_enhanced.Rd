@@ -2,13 +2,13 @@
 % Please edit documentation in R/select-items.R
 \name{select_max_dist_enhanced}
 \alias{select_max_dist_enhanced}
-\title{Enhanced network-based item selection with configurable edge weights}
+\title{Network-based item selection with configurable edge weights.}
 \usage{
 select_max_dist_enhanced(
   pers,
   item,
-  resp,
-  resp_cur = NULL,
+  R,
+  admin,
   adj_mat = NULL,
   n_candidates = 1,
   edge_weight_fun = edge_weight_inverse,
@@ -16,25 +16,38 @@ select_max_dist_enhanced(
 )
 }
 \arguments{
-\item{pers}{A dataframe of current respondent ability estimates.}
+\item{pers}{A data frame of current respondent ability estimates.}
 
-\item{item}{A dataframe of current item parameter estimates.}
+\item{item}{A data frame of current item parameter estimates.}
 
-\item{resp}{A long-form dataframe of all potential pre-simulated item responses.}
+\item{R}{A respondent-by-item matrix of potential responses.}
 
-\item{resp_cur}{A long-form dataframe of administered item responses.}
+\item{admin}{An integer administration matrix; \code{0} indicates an item has not
+been administered to a respondent. See \code{\link[=meow]{meow()}} for details.}
 
-\item{adj_mat}{An item-item adjacency matrix.}
+\item{adj_mat}{An item-item adjacency matrix. See \code{\link[=construct_adj_mat]{construct_adj_mat()}}.}
 
-\item{n_candidates}{Number of farthest items to consider before applying information criterion.}
+\item{n_candidates}{The number of farthest items to assemble into a candidate
+pool before selecting the next item by maximum information. Allows users to
+trade off network density against estimation efficiency.}
 
-\item{edge_weight_fun}{Function to calculate edge weights from adjacency matrix.}
+\item{edge_weight_fun}{A function that computes edge weights from the
+adjacency matrix. See \code{\link[=edge_weight_inverse]{edge_weight_inverse()}}.}
 
-\item{edge_weight_args}{Additional arguments for the edge weight function.}
+\item{edge_weight_args}{A named list of additional arguments for
+\code{edge_weight_fun}.}
 }
 \value{
-A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+An updated administration matrix with the selected item marked for
+each respondent.
 }
 \description{
-This function extends \code{select_max_dist} with flexible edge weight calculations.
+Extends \code{\link[=select_max_dist]{select_max_dist()}} with a flexible edge weight calculation.
+}
+\examples{
+sim <- meow(select_max_dist_enhanced, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item",
+            select_args = list(edge_weight_fun = edge_weight_power))
+nrow(sim$results)
+
 }
