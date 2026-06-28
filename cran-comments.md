@@ -8,12 +8,6 @@
 
 This note is expected for a first-time submission.
 
-## Test environments
-
-* local macOS, R 4.5.2 -- R CMD check --as-cran: 0 errors, 0 warnings, 0 notes
-* win-builder (R-release, R 4.6.1) -- 0 errors, 0 warnings, 1 note (New submission)
-* (to be completed before submission: win-builder R-devel)
-
 ## Notes
 
 * This is a new submission.

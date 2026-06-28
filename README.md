@@ -1,4 +1,4 @@
-# meow <a href="http://klintkanopka.com/meow/"><img src="man/figures/logo.png" align="right" height="120" alt="meow website" /></a>
+# meow <a href="https://klintkanopka.com/meow/"><img src="man/figures/logo.png" align="right" height="120" alt="meow website" /></a>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/klintkanopka/meow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/klintkanopka/meow/actions/workflows/R-CMD-check.yaml)

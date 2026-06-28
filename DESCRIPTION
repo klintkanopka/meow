@@ -19,7 +19,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
-URL: http://klintkanopka.com/meow/
+URL: https://klintkanopka.com/meow/
 BugReports: https://github.com/klintkanopka/meow/issues
 VignetteBuilder: knitr
 Config/testthat/edition: 3

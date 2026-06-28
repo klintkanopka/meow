@@ -9,5 +9,5 @@ bibentry(
   ),
   year     = "2025",
   note     = "R package",
-  url      = "http://klintkanopka.com/meow/"
+  url      = "https://klintkanopka.com/meow/"
 )
