@@ -19,3 +19,8 @@ A list with three components: A dataframe of item response named \code{resp}, a 
 \description{
 \code{data_simple_1pl()} constructs data according to a simple one parameter logistic IRT model. The user may specify a number of persons, a number of items, and a random seed for reproducibility. Person abilities and item difficulties are both drawn from a standard normal.
 }
+\examples{
+data <- data_simple_1pl(N_persons = 10, N_items = 8)
+str(data)
+
+}

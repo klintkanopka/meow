@@ -1,0 +1,13 @@
+citHeader("To cite meow in publications use:")
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "meow: A Unified Framework for Conducting Simulations of Computer Adaptive Testing Algorithms in R",
+  author   = c(
+    person("Klint", "Kanopka"),
+    person("Sophia", "Deng")
+  ),
+  year     = "2025",
+  note     = "R package",
+  url      = "http://klintkanopka.com/meow/"
+)

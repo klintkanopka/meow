@@ -1,35 +1,105 @@
-#' Constructs an item pool adjacency matrix.
+#' Construct an item-pool adjacency matrix.
 #'
-#' For an item pool with N items, this is an NxN matrix. The diagonal elements contain the number of times an item has been exposed. The off-diagonal elements contain the number of times the pair of items has been exposed to the same respondent. In general, this function is never called directly, but instead called within `meow()` calls. That said, it is exposed to the user to aid with testing other functions they may write.
+#' For an item pool with N items, this returns an N x N matrix. The diagonal
+#' elements contain the number of times each item has been administered. The
+#' off-diagonal element \eqn{(i, j)} contains the number of respondents who have
+#' been administered both item \eqn{i} and item \eqn{j}. In general this function
+#' is not called directly, but is instead called within [meow()]. It is exposed
+#' to aid users who are testing item selection functions they have written.
 #'
-#' @param resp_cur A long-form dataframe of observed item responses.
-#' @param pers_tru A dataframe of true respondent abilities.
-#' @param item_tru A dataframe of true item parameters.
+#' @param admin An administration matrix with one row per respondent and one
+#'   column per item. Non-zero entries indicate that an item has been
+#'   administered to a respondent (see [meow()] for details of the matrix-based
+#'   simulation state). A logical matrix is also accepted.
+#' @returns An item-item adjacency matrix of type `matrix`.
+#'
+#' @examples
+#' admin <- matrix(c(1, 1, 0,
+#'                   1, 0, 1), nrow = 2, byrow = TRUE)
+#' construct_adj_mat(admin)
 #'
 #' @export
-#' @returns An adjacency matrix of type `matrix`.
-construct_adj_mat <- function(resp_cur, pers_tru, item_tru) {
-  resp_mat <- matrix(0, nrow = nrow(pers_tru), ncol = nrow(item_tru))
-  for (k in 1:nrow(resp_cur)) {
-    i <- resp_cur$id[k]
-    j <- resp_cur$item[k]
-    resp_mat[i, j] <- 1
-  }
-  adj_mat <- t(resp_mat) %*% resp_mat
-  rownames(adj_mat) <- colnames(adj_mat) <- paste0('item_', 1:nrow(item_tru))
+construct_adj_mat <- function(admin) {
+  a <- (admin != 0) + 0
+  adj_mat <- crossprod(a)
+  rownames(adj_mat) <- colnames(adj_mat) <- paste0('item_', seq_len(ncol(a)))
   return(adj_mat)
 }
 
+
+#' Logical mask of administered items.
+#'
+#' A convenience helper for use inside user-written modules. Returns a logical
+#' matrix that is `TRUE` wherever an item has been administered to a respondent.
+#'
+#' @param admin An administration matrix (see [meow()]).
+#' @returns A logical matrix the same shape as `admin`.
+#'
+#' @examples
+#' admin <- matrix(c(1L, 2L, 0L, 1L), nrow = 2)
+#' meow_administered(admin)
+#'
+#' @export
+meow_administered <- function(admin) {
+  admin != 0
+}
+
+
+#' Convert the matrix simulation state to a long data frame of responses.
+#'
+#' `meow()` represents responses as a respondent-by-item matrix (`R`) together
+#' with an administration matrix (`admin`). This helper returns the administered
+#' responses as a long data frame with columns `id`, `item`, and `resp`, ordered
+#' by respondent and then by the order in which items were administered. It is
+#' the recommended bridge for module authors who prefer to work with
+#' tidyverse-style long data inside their own item selection or parameter update
+#' functions.
+#'
+#' @param R A respondent-by-item matrix of (potential) responses.
+#' @param admin An administration matrix the same shape as `R`. Non-zero entries
+#'   indicate administered items; positive integer entries additionally encode
+#'   the order of administration.
+#' @returns A long-form data frame with columns `id`, `item`, and `resp`
+#'   containing only the administered responses.
+#'
+#' @examples
+#' R <- matrix(c(1, 0, 1, 1), nrow = 2)
+#' admin <- matrix(c(1L, 0L, 2L, 1L), nrow = 2)
+#' meow_long(R, admin)
+#'
+#' @export
+meow_long <- function(R, admin) {
+  idx <- which(admin != 0, arr.ind = TRUE)
+  if (nrow(idx) == 0) {
+    return(data.frame(id = integer(0), item = integer(0), resp = numeric(0)))
+  }
+  id <- idx[, 1]
+  item <- idx[, 2]
+  ord <- order(id, admin[idx], item)
+  data.frame(
+    id = id[ord],
+    item = item[ord],
+    resp = R[idx][ord]
+  )
+}
+
+
 #' Alternative edge weight functions for network-based item selection
 #'
-#' These functions provide different approaches to calculating edge weights from the adjacency matrix.
+#' These functions provide different approaches to calculating edge weights from
+#' the adjacency matrix.
 #'
-#' @param adj_mat The adjacency matrix where entry i,j is the number of co-responses between items i and j
+#' @param adj_mat The adjacency matrix where entry i,j is the number of
+#'   co-responses between items i and j
 #' @param alpha Smoothing parameter for avoiding division by zero
 #' @param beta Exponent for power transformation
 #' @param lambda Decay constant for exponential decay weighting
 #' @param max_co_responses Scaling factor for linear weighting
 #' @returns A matrix of edge weights for use in distance calculations
+#'
+#' @examples
+#' adj_mat <- matrix(c(3, 1, 1, 2), nrow = 2)
+#' edge_weight_inverse(adj_mat)
 #'
 #' @export
 edge_weight_inverse <- function(adj_mat, alpha = 1) {

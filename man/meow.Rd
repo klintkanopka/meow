@@ -2,7 +2,7 @@
 % Please edit documentation in R/meow.R
 \name{meow}
 \alias{meow}
-\title{Conducts a full CAT simulation.}
+\title{Conduct a full CAT simulation.}
 \usage{
 meow(
   select_fun,
@@ -12,7 +12,8 @@ meow(
   update_args = list(),
   data_args = list(),
   init = NULL,
-  fix = "none"
+  fix = "none",
+  keep_adj_mats = TRUE
 )
 }
 \arguments{
@@ -28,13 +29,85 @@ meow(
 
 \item{data_args}{A named list of arguments to be passed to \code{data_loader}.}
 
-\item{init}{A list of initialization values for estimated person and item parameters. Currently accepts a named list with two entities: \code{pers} and \code{item}, for initial estimated values of ability and difficulty, respectively. Defaults to \code{NULL}, which initializes all estimated parameters to zero.}
+\item{init}{A list of initialization values for estimated person and item
+parameters. Accepts a named list with two entries, \code{pers} and \code{item}, giving
+the initial estimated parameter data frames. Defaults to \code{NULL}, which
+initializes all estimated parameters to zero.}
 
-\item{fix}{Which estimated parameters to treat as fixed. Currently defaults to \code{none}, but accepts \code{pers}, \code{item}, or \code{both}.`}
+\item{fix}{Which estimated parameters to treat as fixed at their true values.
+One of \code{none} (the default), \code{pers}, \code{item}, or \code{both}.}
+
+\item{keep_adj_mats}{Logical; if \code{TRUE} (the default) an adjacency matrix is
+stored for every iteration. If \code{FALSE}, only the final adjacency matrix is
+retained, which saves memory for large item pools or long simulations.}
 }
 \value{
-A list of four named entities, \code{results} is a dataframe with one row per iteration of the simulation. It contains one \code{iter} for the iteration number and two columns per person and item parameter, one for the associated estimated parameter and one for the bias in that estimate. Next is a list of item-item adjacency matrices, contained in \code{adj_mats}. One matrix is provided per iteration of the simulation, and edge weights are the number of respondents who have responded to each pair of items. Finally, true ability and difficulty dataframes are returned in \code{pers_tru} and \code{item_tru}.
+A list of four named entities. \code{results} is a data frame with one row
+per iteration of the simulation. It contains an \code{iter} column for the
+iteration number and two columns per person and item parameter, one for the
+estimated parameter and one for the bias in that estimate. \code{adj_mats} is a
+list of item-item adjacency matrices, one per iteration (or, when
+\code{keep_adj_mats = FALSE}, a single-element list with the final matrix); edge
+weights count the number of respondents administered each pair of items.
+\code{pers_tru} and \code{item_tru} are the true person and item parameter data
+frames.
 }
 \description{
-\code{meow()} is the core function of this simulation framework and exists to help users compare efficiency tradeoffs across different item selection algorithms, parameter update algorithms, and data generating processes. It takes as arguments an item selection function, a parameter update function, and a data loader function and uses these to carry out a simulation of a full CAT administration. Default behavior is proceed until all items have been administered. Since internal simulation logic checks to see if additional items are being administered, early stopping conditions should be implemented within the item selection functions. Internal parameters are passed around as dataframes for maximum flexibility.
+\code{meow()} is the core function of this simulation framework. It exists to help
+users compare efficiency tradeoffs across different item selection algorithms,
+parameter update algorithms, and data generating processes. It takes as
+arguments an item selection function, a parameter update function, and a data
+loader function and uses these to carry out a simulation of a full CAT
+administration. Default behavior is to proceed until no further items are
+administered. Because the internal simulation logic stops as soon as an
+iteration administers no new items, early stopping conditions should be
+implemented within the item selection function (by declining to administer
+further items).
+}
+\details{
+\subsection{Simulation state}{
+
+For speed, \code{meow()} represents responses with matrices rather than long data
+frames. Two matrices, each with one row per respondent and one column per
+item, are passed to the user-supplied modules:
+\itemize{
+\item \code{R} --- the (potential) response of every respondent to every item. This is
+produced once from the long \code{resp} data frame returned by the data loader.
+\item \code{admin} --- an integer administration matrix. An entry of \code{0} means the item
+has not been administered to that respondent; a positive entry means it has,
+and the value encodes the order of administration. Use \code{admin != 0} (or
+\code{\link[=meow_administered]{meow_administered()}}) as an administered mask.
+}
+
+Person and item \emph{parameters} are kept as data frames (\code{pers} and \code{item}), each
+with an identifier column (\code{id} and \code{item}, respectively) followed by one
+column per parameter, so that users retain the flexibility to add arbitrary
+parameters.
+}
+
+\subsection{Module contracts}{
+
+An \strong{item selection} function receives \code{pers}, \code{item}, \code{R}, \code{admin}, and
+\code{adj_mat} (plus any \code{select_args}) and returns an administration matrix with
+newly selected cells marked non-zero. The harness stamps the order of
+administration, so a function need only set newly selected cells to a positive
+value (or \code{TRUE}) while leaving previously administered cells unchanged.
+
+A \strong{parameter update} function receives \code{pers}, \code{item}, \code{R}, and \code{admin}
+(plus any \code{update_args}) and returns a list with updated \code{pers} and \code{item}
+data frames.
+
+Module authors who prefer long data frames can convert with \code{\link[=meow_long]{meow_long()}}.
+}
+}
+\examples{
+sim <- meow(
+  select_fun = select_max_info,
+  update_fun = update_theta_mle,
+  data_loader = data_simple_1pl,
+  data_args = list(N_persons = 20, N_items = 15),
+  fix = "item"
+)
+head(sim$results)
+
 }

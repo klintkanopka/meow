@@ -10,22 +10,18 @@ Description: Provides an extensible framework for conducting simulations to comp
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-Imports: 
-    dplyr,
+RoxygenNote: 7.3.3
+Imports:
     Rfast,
-    rlang,
-    tidyr,
-    tidyselect
+    stats
 Suggests:
     ggplot2,
     knitr,
-    quarto,
+    rmarkdown,
     testthat (>= 3.0.0)
 URL: http://klintkanopka.com/meow/
 BugReports: https://github.com/klintkanopka/meow/issues
-VignetteBuilder: quarto
+VignetteBuilder: knitr
 Config/testthat/edition: 3
-Depends: 
+Depends:
     R (>= 3.5)
-LazyData: true

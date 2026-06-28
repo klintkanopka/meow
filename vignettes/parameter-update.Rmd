@@ -1,0 +1,114 @@
+---
+title: "Parameter Update Functions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Parameter Update Functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(meow)
+```
+
+Parameter update functions re-estimate person and item parameters from the
+responses administered so far. They are the estimation engine of a `meow`
+simulation. For the full module contract, see `vignette("extending-meow")`.
+
+# Function signature
+
+Every parameter update function has the signature
+
+```r
+update_fun <- function(pers, item, R, admin, ...) {
+  # ... re-estimate parameters ...
+  list(pers = updated_pers, item = updated_item)
+}
+```
+
+It receives the current estimates (`pers`, `item`), the response matrix `R`, and
+the administration matrix `admin`, and returns a list with the updated `pers` and
+`item` data frames. The administered responses are obtained from the matrix
+state:
+
+```{r, eval = FALSE}
+idx    <- which(admin != 0, arr.ind = TRUE)
+person <- idx[, 1]
+item_j <- idx[, 2]
+resp   <- R[idx]
+```
+
+or, equivalently, as a long data frame with `meow_long(R, admin)`.
+
+# Bundled updaters
+
+## Maximum likelihood ability estimation
+
+`update_theta_mle()` treats item parameters as fixed and finds each respondent's
+2PL maximum likelihood ability estimate, constrained to $[-4, 4]$. The
+log-likelihood is fully vectorized over the administered responses:
+
+```{r, eval = FALSE}
+loglik <- function(theta) {
+  p <- stats::plogis(item$a[item_j] * (theta[person] - item$b[item_j]))
+  sum(resp * log(p) + (1 - resp) * log(1 - p))
+}
+est <- stats::optim(pers$theta, loglik, lower = -4, upper = 4,
+                    method = "L-BFGS-B", control = list(fnscale = -1))
+```
+
+## Elo-style updates (Maths Garden)
+
+`update_maths_garden()` updates both abilities and difficulties with the
+on-the-fly Elo rule of Klinkenberg, Straatemeier, and van der Maas (2011):
+
+$$\hat\theta_j = \theta_j + K_\theta \sum_i (S_{ij} - E(S_{ij})), \qquad
+\hat b_i = b_i + K_b \sum_j (E(S_{ij}) - S_{ij}).$$
+
+See `vignette("maths-garden-update")`.
+
+## Paired Elo updates (Prowise Learn)
+
+`update_prowise_learn()` updates abilities with the same rule, but updates item
+difficulties through paired comparisons of consecutively administered items, which
+controls rating drift (Vermeiren et al., 2025). See
+`vignette("prowise-learn-update")`.
+
+# Writing a custom updater
+
+This updater shrinks each ability estimate toward the mean of the administered
+responses (a crude but illustrative rule) and leaves items unchanged.
+
+```{r}
+update_shrink <- function(pers, item, R, admin, weight = 0.5) {
+  idx <- which(admin != 0, arr.ind = TRUE)
+  person <- idx[, 1]
+  resp <- R[idx]
+  score <- tapply(resp, person, mean)
+  target <- stats::qlogis(pmin(pmax(score, 0.02), 0.98))
+  who <- as.integer(names(target))
+  pers$theta[who] <- (1 - weight) * pers$theta[who] + weight * target
+  list(pers = pers, item = item)
+}
+
+sim <- meow(
+  select_fun  = select_max_info,
+  update_fun  = update_shrink,
+  data_loader = data_simple_1pl,
+  data_args   = list(N_persons = 50, N_items = 30),
+  update_args = list(weight = 0.3),
+  fix         = "item"
+)
+nrow(sim$results)
+```
+
+# Best practices
+
+1. **Return `list(pers, item)`** --- both data frames, even if one is unchanged.
+2. **Bound estimates** to a sensible range to avoid divergence.
+3. **Vectorize** over the administered responses (`tapply()`, matrix indexing)
+   rather than looping over respondents or items.
+4. **Respect administration order** when it matters: `meow_long()` returns
+   responses ordered by respondent and then by administration order, which is
+   what paired-comparison methods rely on.

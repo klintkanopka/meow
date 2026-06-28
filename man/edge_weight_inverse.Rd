@@ -19,7 +19,8 @@ edge_weight_power(adj_mat, beta = 0.5, alpha = 1)
 edge_weight_exponential(adj_mat, lambda = 0.1, alpha = 1)
 }
 \arguments{
-\item{adj_mat}{The adjacency matrix where entry i,j is the number of co-responses between items i and j}
+\item{adj_mat}{The adjacency matrix where entry i,j is the number of
+co-responses between items i and j}
 
 \item{alpha}{Smoothing parameter for avoiding division by zero}
 
@@ -33,5 +34,11 @@ edge_weight_exponential(adj_mat, lambda = 0.1, alpha = 1)
 A matrix of edge weights for use in distance calculations
 }
 \description{
-These functions provide different approaches to calculating edge weights from the adjacency matrix.
+These functions provide different approaches to calculating edge weights from
+the adjacency matrix.
+}
+\examples{
+adj_mat <- matrix(c(3, 1, 1, 2), nrow = 2)
+edge_weight_inverse(adj_mat)
+
 }

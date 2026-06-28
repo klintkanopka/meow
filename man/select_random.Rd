@@ -2,33 +2,37 @@
 % Please edit documentation in R/select-items.R
 \name{select_random}
 \alias{select_random}
-\title{Item selection function that delivers an item an item drawn at random from the item bank to each respondent.}
+\title{Item selection by random draw from the remaining item bank.}
 \usage{
-select_random(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL,
-  select_seed = NULL
-)
+select_random(pers, item, R, admin, adj_mat = NULL, select_seed = NULL)
 }
 \arguments{
-\item{pers}{A dataframe of current respondent ability estimates.}
+\item{pers}{A data frame of current respondent ability estimates.}
 
-\item{item}{A dataframe of current item parameter estimates.}
+\item{item}{A data frame of current item parameter estimates.}
 
-\item{resp}{A long-form dataframe of all potential pre-simulated item responses.}
+\item{R}{A respondent-by-item matrix of potential responses.}
 
-\item{resp_cur}{A long-form dataframe of administered item responses.}
+\item{admin}{An integer administration matrix; \code{0} indicates an item has not
+been administered to a respondent. See \code{\link[=meow]{meow()}} for details.}
 
-\item{adj_mat}{An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for \code{construct_adj_mat}}
+\item{adj_mat}{An item-item adjacency matrix. See \code{\link[=construct_adj_mat]{construct_adj_mat()}}.}
 
-\item{select_seed}{A random seed used only for item selection. Cleared each time this function is run.}
+\item{select_seed}{A random seed used only for item selection. The seed is
+cleared after use so that successive simulations vary unless a seed is given.}
 }
 \value{
-A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+An updated administration matrix with a random next item marked for
+each respondent.
 }
 \description{
-Each respondent has their own next item drawn at random from the remaining items.
+Each respondent's next item is drawn at random from the items they have not
+yet been administered.
+}
+\examples{
+sim <- meow(select_random, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item",
+            select_args = list(select_seed = 1))
+nrow(sim$results)
+
 }

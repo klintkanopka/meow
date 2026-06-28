@@ -6,9 +6,12 @@
 ^pkgdown$
 ^\.github$
 ^vignettes/\.quarto$
-^vignettes/*_files$
+^vignettes/.*_files$
 ^paper$
-^.vscode$
+^\.vscode$
+^data-raw$
+^cran-comments\.md$
+^CRAN-SUBMISSION$
 ^data/sample_resp.csv$
 ^data/sample_pers.csv$
 ^data/sample_item.csv$

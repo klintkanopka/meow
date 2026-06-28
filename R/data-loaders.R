@@ -27,8 +27,11 @@ data_existing <- function(resp_path, pers_path, item_path) {
 #' @param data_seed A random seed for generating reproducible data. This seed is re-initialized at the end of the data generation process
 #' @returns A list with three components: A dataframe of item response named `resp`, a dataframe of true person parameters named `pers_tru`, and a dataframe of true item parameters named `item_tru`
 #'
+#' @examples
+#' data <- data_simple_1pl(N_persons = 10, N_items = 8)
+#' str(data)
+#'
 #' @export
-#' @importFrom rlang .data
 data_simple_1pl <- function(
   N_persons = 100,
   N_items = 50,
@@ -50,21 +53,18 @@ data_simple_1pl <- function(
   disc_mat <- matrix(item_tru$a, nrow = N_persons, ncol = N_items, byrow = TRUE)
 
   p <- stats::plogis(disc_mat * (theta_mat - diff_mat))
-  resp <- matrix(
+  resp_mat <- matrix(
     stats::rbinom(length(p), 1, p),
     nrow = N_persons,
     ncol = N_items
-  ) |>
-    as.data.frame() |>
-    dplyr::mutate(id = 1:N_persons) |>
-    tidyr::pivot_longer(
-      tidyselect::starts_with('V'),
-      names_to = 'item',
-      values_to = 'resp',
-      names_prefix = 'V'
-    ) |>
-    dplyr::select(.data$id, .data$item, .data$resp) |>
-    dplyr::mutate(dplyr::across(tidyselect::everything(), as.numeric))
+  )
+
+  # Long form, ordered by respondent and then item.
+  resp <- data.frame(
+    id = rep(seq_len(N_persons), each = N_items),
+    item = rep(seq_len(N_items), times = N_persons),
+    resp = as.vector(t(resp_mat))
+  )
 
   out <- list(resp = resp, pers_tru = pers_tru, item_tru = item_tru)
   set.seed(NULL)

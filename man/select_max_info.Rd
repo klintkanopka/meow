@@ -2,24 +2,34 @@
 % Please edit documentation in R/select-items.R
 \name{select_max_info}
 \alias{select_max_info}
-\title{Item selection function that delivers the the remaining item with the highest information.}
+\title{Item selection by maximum Fisher information.}
 \usage{
-select_max_info(pers, item, resp, resp_cur = NULL, adj_mat = NULL)
+select_max_info(pers, item, R, admin, adj_mat = NULL)
 }
 \arguments{
-\item{pers}{A dataframe of current respondent ability estimates.}
+\item{pers}{A data frame of current respondent ability estimates.}
 
-\item{item}{A dataframe of current item parameter estimates.}
+\item{item}{A data frame of current item parameter estimates.}
 
-\item{resp}{A long-form dataframe of all potential pre-simulated item responses.}
+\item{R}{A respondent-by-item matrix of potential responses.}
 
-\item{resp_cur}{A long-form dataframe of administered item responses.}
+\item{admin}{An integer administration matrix; \code{0} indicates an item has not
+been administered to a respondent. See \code{\link[=meow]{meow()}} for details.}
 
-\item{adj_mat}{An item-item adjacency matrix, where each entry is the count of individuals who have respondent to both item i and item j. See documentation for \code{construct_adj_mat}}
+\item{adj_mat}{An item-item adjacency matrix. See \code{\link[=construct_adj_mat]{construct_adj_mat()}}.}
 }
 \value{
-A long-form dataframe of all previously administered item responses with the new responses from this iteration appended to the end.
+An updated administration matrix with the most informative remaining
+item marked for each respondent.
 }
 \description{
-Information calculation is based upon current parameter estimates and a 2PL item response function.
+Administers the remaining item with the highest information for each
+respondent, computed from the current parameter estimates and a 2PL item
+response function.
+}
+\examples{
+sim <- meow(select_max_info, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item")
+nrow(sim$results)
+
 }
