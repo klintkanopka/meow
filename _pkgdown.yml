@@ -4,13 +4,6 @@ template:
   light-switch: true
 
 articles:
-- title: Getting Started
-  desc: Start-to-finish simulation workflows
-  navbar: ~
-  contents:
-  - extending-meow
-  - meow-viz
-
 - title: Building Blocks
   desc:  The structure and design of the core components of the `meow` framework
   navbar: ~
@@ -18,6 +11,13 @@ articles:
   - data-loaders
   - item-selection
   - parameter-update
+
+- title: Working with `meow`
+  desc: Start-to-finish simulation workflows
+  navbar: ~
+  contents:
+  - extending-meow
+  - meow-viz
 
 - title: Implementations
   desc: Deeper dives into specific implementations
@@ -41,7 +41,7 @@ reference:
   - starts_with("select_")
 - title: Parameter Update Functions
   desc: >
-    Included parameter update functions. Note that some only operate on person 
+    Included parameter update functions. Note that some only operate on person
     parameters, while others simultaneously update person and item parameters.
 - contents:
   - starts_with("update_")
