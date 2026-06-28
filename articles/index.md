@@ -4,6 +4,8 @@
 
 Start-to-finish simulation workflows
 
+- [Extending meow: Writing Your Own
+  Modules](http://klintkanopka.com/meow/articles/extending-meow.md):
 - [Visualizing Item Exposure Control
   Methods](http://klintkanopka.com/meow/articles/meow-viz.md):
 

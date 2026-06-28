@@ -1,55 +1,58 @@
-# Item selection function based on network distance criterion.
+# Item selection by network distance criterion.
 
-This item selection function delivers the item farthest in the network
-from the items a respondent has already answered, with edges weighted by
-the inverse of their entry in the item-item adjacency matrix. Ties are
-broken using the maximum information criterion.
+Administers the item farthest in the item network from the items a
+respondent has already answered, with edges weighted by the inverse of
+their entry in the item-item adjacency matrix. Ties are broken using the
+maximum information criterion.
 
 ## Usage
 
 ``` r
-select_max_dist(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL,
-  n_candidates = 1
-)
+select_max_dist(pers, item, R, admin, adj_mat = NULL, n_candidates = 1)
 ```
 
 ## Arguments
 
 - pers:
 
-  A dataframe of current respondent ability estimates.
+  A data frame of current respondent ability estimates.
 
 - item:
 
-  A dataframe of current item parameter estimates.
+  A data frame of current item parameter estimates.
 
-- resp:
+- R:
 
-  A long-form dataframe of all potential pre-simulated item responses.
+  A respondent-by-item matrix of potential responses.
 
-- resp_cur:
+- admin:
 
-  A long-form dataframe of administered item responses.
+  An integer administration matrix; `0` indicates an item has not been
+  administered to a respondent. See
+  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  details.
 
 - adj_mat:
 
-  An item-item adjacency matrix, where each entry is the count of
-  individuals who have respondent to both item i and item j. See
-  documentation for `construct_adj_mat`
+  An item-item adjacency matrix. See
+  [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md).
 
 - n_candidates:
 
-  A parameter that allows the assembly of a pool of \$N\$ farthest
-  items, before selecting the next item according to maximum
-  information. Allows users to balance exposure patterns away from
-  increased network density and toward more efficient estimation.
+  The number of farthest items to assemble into a candidate pool before
+  selecting the next item by maximum information. Allows users to trade
+  off network density against estimation efficiency.
 
 ## Value
 
-A long-form dataframe of all previously administered item responses with
-the new responses from this iteration appended to the end.
+An updated administration matrix with the selected item marked for each
+respondent.
+
+## Examples
+
+``` r
+sim <- meow(select_max_dist, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item")
+nrow(sim$results)
+#> [1] 6
+```

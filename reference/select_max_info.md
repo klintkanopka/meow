@@ -1,39 +1,51 @@
-# Item selection function that delivers the the remaining item with the highest information.
+# Item selection by maximum Fisher information.
 
-Information calculation is based upon current parameter estimates and a
-2PL item response function.
+Administers the remaining item with the highest information for each
+respondent, computed from the current parameter estimates and a 2PL item
+response function.
 
 ## Usage
 
 ``` r
-select_max_info(pers, item, resp, resp_cur = NULL, adj_mat = NULL)
+select_max_info(pers, item, R, admin, adj_mat = NULL)
 ```
 
 ## Arguments
 
 - pers:
 
-  A dataframe of current respondent ability estimates.
+  A data frame of current respondent ability estimates.
 
 - item:
 
-  A dataframe of current item parameter estimates.
+  A data frame of current item parameter estimates.
 
-- resp:
+- R:
 
-  A long-form dataframe of all potential pre-simulated item responses.
+  A respondent-by-item matrix of potential responses.
 
-- resp_cur:
+- admin:
 
-  A long-form dataframe of administered item responses.
+  An integer administration matrix; `0` indicates an item has not been
+  administered to a respondent. See
+  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  details.
 
 - adj_mat:
 
-  An item-item adjacency matrix, where each entry is the count of
-  individuals who have respondent to both item i and item j. See
-  documentation for `construct_adj_mat`
+  An item-item adjacency matrix. See
+  [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md).
 
 ## Value
 
-A long-form dataframe of all previously administered item responses with
-the new responses from this iteration appended to the end.
+An updated administration matrix with the most informative remaining
+item marked for each respondent.
+
+## Examples
+
+``` r
+sim <- meow(select_max_info, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item")
+nrow(sim$results)
+#> [1] 6
+```

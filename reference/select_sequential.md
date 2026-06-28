@@ -1,40 +1,51 @@
-# Item selection function that delivers the next item by item id number, simulating a fixed test form.
+# Item selection by item id, simulating a fixed test form.
 
-This function just administers the next item in a form, with the
-within-person item ordering being governed by the ordering the rows in
-the `resp` dataframe.
+This function administers the next unadministered item to each
+respondent in increasing item-id order, producing a fixed linear test
+form.
 
 ## Usage
 
 ``` r
-select_sequential(pers, item, resp, resp_cur = NULL, adj_mat = NULL)
+select_sequential(pers, item, R, admin, adj_mat = NULL)
 ```
 
 ## Arguments
 
 - pers:
 
-  A dataframe of current respondent ability estimates.
+  A data frame of current respondent ability estimates.
 
 - item:
 
-  A dataframe of current item parameter estimates.
+  A data frame of current item parameter estimates.
 
-- resp:
+- R:
 
-  A long-form dataframe of all potential pre-simulated item responses.
+  A respondent-by-item matrix of potential responses.
 
-- resp_cur:
+- admin:
 
-  A long-form dataframe of administered item responses.
+  An integer administration matrix; `0` indicates an item has not been
+  administered to a respondent. See
+  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  details.
 
 - adj_mat:
 
-  An item-item adjacency matrix, where each entry is the count of
-  individuals who have respondent to both item i and item j. See
-  documentation for `construct_adj_mat`
+  An item-item adjacency matrix. See
+  [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md).
 
 ## Value
 
-A long-form dataframe of all previously administered item responses with
-the new responses from this iteration appended to the end.
+An updated administration matrix with each respondent's next item marked
+as administered.
+
+## Examples
+
+``` r
+sim <- meow(select_sequential, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item")
+nrow(sim$results)
+#> [1] 6
+```

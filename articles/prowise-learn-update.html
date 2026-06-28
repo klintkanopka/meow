@@ -12,13 +12,10 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="prowise-learn-update_files/libs/quarto-html/popper.min.js"></script><script src="prowise-learn-update_files/libs/quarto-html/tippy.umd.min.js"></script><link href="prowise-learn-update_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="prowise-learn-update_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Implementing the Prowise Learn Update Algorithm">
-<meta property="og:image" content="http://klintkanopka.com/meow/logo.png">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Implementing the Prowise Learn Update Algorithm">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -41,7 +38,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/meow-viz.html">Visualizing Item Exposure Control Methods</a></li>
+<li><a class="dropdown-item" href="../articles/extending-meow.html">Extending meow: Writing Your Own Modules</a></li>
+    <li><a class="dropdown-item" href="../articles/meow-viz.html">Visualizing Item Exposure Control Methods</a></li>
     <li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
     <li><a class="dropdown-item" href="../articles/item-selection.html">Item Selection Functions</a></li>
     <li><a class="dropdown-item" href="../articles/parameter-update.html">Parameter Update Functions</a></li>
@@ -49,6 +47,7 @@
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -68,527 +67,122 @@
 
 
   </div>
-</nav><div class="container template-quarto">
+</nav><div class="container template-article">
+
+
+
+
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Implementing the Prowise Learn Update Algorithm</h1>
-
-
-
-
-      <small class="dont-index">Source: <a href="https://github.com/klintkanopka/meow/blob/main/vignettes/prowise-learn-update.qmd" class="external-link"><code>vignettes/prowise-learn-update.qmd</code></a></small>
-      <div class="d-none name"><code></code></div>
+            
+      
+      <small class="dont-index">Source: <a href="https://github.com/klintkanopka/meow/blob/main/vignettes/prowise-learn-update.Rmd" class="external-link"><code>vignettes/prowise-learn-update.Rmd</code></a></small>
+      <div class="d-none name"><code>prowise-learn-update.Rmd</code></div>
     </div>
 
-
-
-
-
-
-    <p>The Prowise Learn update algorithm is an advanced parameter estimation method designed to address the problem of rating drift in computer adaptive testing systems. This algorithm was developed for the Prowise Learn platform and introduces paired item updates to maintain parameter stability while still providing real-time adaptation.</p>
-<p>In this vignette, we will explore the mathematical foundations of the Prowise Learn algorithm, its unique paired update mechanism, and how to implement and customize it for your research.</p>
-<section class="section level2"><h2 id="mathematical-foundation">Mathematical Foundation<a class="anchor" aria-label="anchor" href="#mathematical-foundation"></a>
+    
+    
+<p>The Prowise Learn algorithm (Vermeiren et al., 2025) extends the
+Elo-style Maths Garden updates
+(<code><a href="../articles/maths-garden-update.html">vignette("maths-garden-update")</a></code>) with <strong>paired item
+updates</strong> that counteract rating drift — the tendency for item
+difficulty estimates to slide systematically over time.</p>
+<div class="section level2">
+<h2 id="mathematical-foundation">Mathematical foundation<a class="anchor" aria-label="anchor" href="#mathematical-foundation"></a>
 </h2>
-<section class="level2"><h3 id="core-update-equations">Core Update Equations<a class="anchor" aria-label="anchor" href="#core-update-equations"></a>
-</h3>
-<p>The Prowise Learn algorithm builds upon the Maths Garden approach but adds a crucial innovation: paired item updates to prevent rating drift. The update equations are:</p>
-<p><strong>Person Ability Update:</strong> <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>θ</mi><mi>j</mi><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow></msubsup><mo>=</mo><msubsup><mi>θ</mi><mi>j</mi><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msubsup><mo>+</mo><msub><mi>K</mi><mi>θ</mi></msub><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><msub><mi>I</mi><mi>j</mi></msub></mrow></munder><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><mi>E</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\theta_j^{new} = \theta_j^{old} + K_\theta \sum_{i \in I_j} (S_{ij} - E(S_{ij}))</annotation></semantics></math></p>
-<p><strong>Paired Item Difficulty Updates:</strong> For consecutive responses by the same person, the difficulty updates are paired: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0.5</mn><mo>⋅</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>K</mi><mi>b</mi></msub><mo>⋅</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><mo>−</mo><msub><mi>E</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>K</mi><mi>b</mi></msub><mo>⋅</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow></msub><mo>−</mo><msub><mi>E</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\kappa = 0.5 \cdot (K_b \cdot (S_{now} - E_{now}) - K_b \cdot (S_{prev} - E_{prev}))</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>b</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow></msubsup><mo>=</mo><msubsup><mi>b</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msubsup><mo>+</mo><mi>κ</mi></mrow><annotation encoding="application/x-tex">b_{now}^{new} = b_{now}^{old} + \kappa</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>b</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow></msubsup><mo>=</mo><msubsup><mi>b</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow><mrow><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msubsup><mo>−</mo><mi>κ</mi></mrow><annotation encoding="application/x-tex">b_{prev}^{new} = b_{prev}^{old} - \kappa</annotation></semantics></math></p>
-<p>Where: - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\theta_j</annotation></semantics></math> is the ability of person <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>i</mi></msub><annotation encoding="application/x-tex">b_i</annotation></semantics></math> is the difficulty of item <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">S_{ij}</annotation></semantics></math> is the observed response (0 or 1) of person <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> to item <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">E(S_{ij})</annotation></semantics></math> is the expected probability of a correct response - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">K_\theta</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>b</mi></msub><annotation encoding="application/x-tex">K_b</annotation></semantics></math> are learning rates for abilities and difficulties respectively - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><annotation encoding="application/x-tex">S_{now}</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow></msub><annotation encoding="application/x-tex">S_{prev}</annotation></semantics></math> are the current and previous responses - <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><annotation encoding="application/x-tex">E_{now}</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow></msub><annotation encoding="application/x-tex">E_{prev}</annotation></semantics></math> are the expected probabilities for current and previous items</p>
-</section><section class="level2"><h3 id="expected-response-probability">Expected Response Probability<a class="anchor" aria-label="anchor" href="#expected-response-probability"></a>
-</h3>
-<p>The expected probability <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">E(S_{ij})</annotation></semantics></math> is calculated using the logistic function:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>1</mn><mo stretchy="false" form="prefix">|</mo><msub><mi>θ</mi><mi>j</mi></msub><mo>,</mo><msub><mi>b</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mi>−</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mi>j</mi></msub><mo>−</mo><msub><mi>b</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">E(S_{ij}) = P(S_{ij} = 1 | \theta_j, b_i) = \frac{1}{1 + e^{-(\theta_j - b_i)}}</annotation></semantics></math></p>
-<p>This uses the 1-parameter logistic (1PL) item response model.</p>
-</section><section class="level2"><h3 id="rating-drift-problem">Rating Drift Problem<a class="anchor" aria-label="anchor" href="#rating-drift-problem"></a>
-</h3>
-<p>Rating drift occurs when item difficulty estimates systematically increase or decrease over time, often due to:</p>
-<ol type="1">
-<li>
-<strong>Sequential Bias</strong>: Later items in a sequence may be systematically easier or harder</li>
-<li>
-<strong>Person Ability Changes</strong>: If person abilities change during testing, item difficulties may be incorrectly adjusted</li>
-<li>
-<strong>Selection Bias</strong>: Adaptive selection may create correlations between item difficulties and administration order</li>
-</ol></section><section class="level2"><h3 id="paired-update-solution">Paired Update Solution<a class="anchor" aria-label="anchor" href="#paired-update-solution"></a>
-</h3>
-<p>The paired update mechanism addresses rating drift by:</p>
-<ol type="1">
-<li>
-<strong>Balancing Updates</strong>: When updating a pair of items, the total difficulty change sums to zero</li>
-<li>
-<strong>Relative Positioning</strong>: Items maintain their relative difficulty positions</li>
-<li>
-<strong>Drift Prevention</strong>: Systematic increases or decreases in difficulty are prevented</li>
-</ol></section></section><section class="section level2"><h2 id="implementation-in-meow">Implementation in <code>meow</code>
-<a class="anchor" aria-label="anchor" href="#implementation-in-meow"></a>
+<p>Abilities are updated exactly as in Maths Garden:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>θ</mi><mi>j</mi><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow></msubsup><mo>=</mo><msub><mi>θ</mi><mi>j</mi></msub><mo>+</mo><msub><mi>K</mi><mi>θ</mi></msub><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><msub><mi>I</mi><mi>j</mi></msub></mrow></munder><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><mi>E</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\theta_j^{new} = \theta_j + K_\theta \sum_{i \in I_j} (S_{ij} - E(S_{ij})).</annotation></semantics></math></p>
+<p>Item difficulties, however, are updated in <strong>consecutive
+pairs</strong> of items administered to the same respondent. For a pair
+(previous item, current item),</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0.5</mn><mspace width="0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>K</mi><mi>b</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><mo>−</mo><msub><mi>E</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>K</mi><mi>b</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow></msub><mo>−</mo><msub><mi>E</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>b</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><mo>+</mo><mo>=</mo><mi>κ</mi><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>b</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow></msub><mo>−</mo><mo>=</mo><mi>κ</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">\kappa = 0.5\,\big(K_b (S_{now} - E_{now}) - K_b (S_{prev} - E_{prev})\big),
+\qquad
+b_{now} \mathrel{+}= \kappa, \quad b_{prev} \mathrel{-}= \kappa.</annotation></semantics></math></p>
+<p>Because each pair adds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>+</mi><mi>κ</mi></mrow><annotation encoding="application/x-tex">+\kappa</annotation></semantics></math>
+to one item and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>κ</mi></mrow><annotation encoding="application/x-tex">-\kappa</annotation></semantics></math>
+to the other, the total difficulty mass is conserved, so items keep
+their relative positions and do not drift en masse. Expected responses
+use the Rasch model,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mi>−</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mi>j</mi></msub><mo>−</mo><msub><mi>b</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">E(S_{ij}) = 1 / (1 + e^{-(\theta_j - b_i)})</annotation></semantics></math>.</p>
+</div>
+<div class="section level2">
+<h2 id="implementation-in-meow">Implementation in <code>meow</code><a class="anchor" aria-label="anchor" href="#implementation-in-meow"></a>
 </h2>
-<section class="level2"><h3 id="function-overview">Function Overview<a class="anchor" aria-label="anchor" href="#function-overview"></a>
-</h3>
-<p>The <code><a href="../reference/update_prowise_learn.html">update_prowise_learn()</a></code> function implements this algorithm:</p>
+<p>Paired updates are inherently <strong>order dependent</strong>, so
+<code><a href="../reference/update_prowise_learn.html">update_prowise_learn()</a></code> uses
+<code>meow_long(R, admin)</code>, which returns the administered
+responses ordered by respondent and then by administration order.
+Consecutive within-respondent rows form the pairs; the per-item
+contributions are aggregated with <code><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply()</a></code>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">update_prowise_learn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">resp</span>, <span class="va">K_theta</span> <span class="op">=</span> <span class="fl">0.1</span>, <span class="va">K_b</span> <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Implement the update rule from the Prowise Learn paper with paired item updates</span></span>
-<span>  <span class="co"># to prevent rating drift</span></span>
+<code class="sourceCode R"><span><span class="va">update_prowise_learn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">R</span>, <span class="va">admin</span>, <span class="va">K_theta</span> <span class="op">=</span> <span class="fl">0.1</span>, <span class="va">K_b</span> <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">long</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow_long.html">meow_long</a></span><span class="op">(</span><span class="va">R</span>, <span class="va">admin</span><span class="op">)</span></span>
+<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">pers</span><span class="op">$</span><span class="va">theta</span><span class="op">[</span><span class="va">long</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">item</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="va">long</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="co"># Initialize updated parameters</span></span>
-<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span> <span class="op">&lt;-</span> <span class="va">pers</span><span class="op">$</span><span class="va">theta</span></span>
-<span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span> <span class="op">&lt;-</span> <span class="va">pers</span><span class="op">$</span><span class="va">b</span></span>
+<span>  <span class="co"># ability update (as in Maths Garden)</span></span>
+<span>  <span class="va">dtheta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">long</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span>, <span class="va">long</span><span class="op">$</span><span class="va">id</span>, <span class="va">sum</span><span class="op">)</span></span>
+<span>  <span class="va">pers</span><span class="op">$</span><span class="va">theta</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">dtheta</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span></span>
+<span>    <span class="va">pers</span><span class="op">$</span><span class="va">theta</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">dtheta</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">+</span> <span class="va">K_theta</span> <span class="op">*</span> <span class="va">dtheta</span></span>
 <span></span>
-<span>  <span class="co"># Calculate expected probabilities for all responses</span></span>
-<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">diff</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Update theta (ability) for each person</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">resp_j</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span>, <span class="op">]</span></span>
-<span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_theta</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="co"># Paired item updates</span></span>
-<span>  <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">person</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">person_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="va">idx_now</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
-<span>        <span class="va">idx_prev</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span></span>
-<span>        <span class="va">item_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">item_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">s_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">s_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">e_now</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">e_prev</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_b</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="va">K_b</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">+</span> <span class="va">kappa</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">-</span> <span class="va">kappa</span></span>
-<span>        <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="va">update_count</span> <span class="op">+</span> <span class="fl">1</span></span>
-<span>      <span class="op">}</span></span>
+<span>  <span class="co"># paired item updates over consecutive administrations</span></span>
+<span>  <span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">long</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">n</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">nxt</span> <span class="op">&lt;-</span> <span class="fl">2</span><span class="op">:</span><span class="va">n</span>; <span class="va">prv</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">n</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="va">pair</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">long</span><span class="op">$</span><span class="va">id</span><span class="op">[</span><span class="va">nxt</span><span class="op">]</span> <span class="op">==</span> <span class="va">long</span><span class="op">$</span><span class="va">id</span><span class="op">[</span><span class="va">prv</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">pair</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">now</span> <span class="op">&lt;-</span> <span class="va">nxt</span><span class="op">[</span><span class="va">pair</span><span class="op">]</span>; <span class="va">pre</span> <span class="op">&lt;-</span> <span class="va">prv</span><span class="op">[</span><span class="va">pair</span><span class="op">]</span></span>
+<span>      <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_b</span> <span class="op">*</span> <span class="op">(</span><span class="va">long</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">now</span><span class="op">]</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">now</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span></span>
+<span>                      <span class="va">K_b</span> <span class="op">*</span> <span class="op">(</span><span class="va">long</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">pre</span><span class="op">]</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">pre</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="va">add_now</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">kappa</span>,  <span class="va">long</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">now</span><span class="op">]</span>, <span class="va">sum</span><span class="op">)</span></span>
+<span>      <span class="va">add_pre</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="op">-</span><span class="va">kappa</span>, <span class="va">long</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">pre</span><span class="op">]</span>, <span class="va">sum</span><span class="op">)</span></span>
+<span>      <span class="va">item</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">add_now</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">item</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">add_now</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">+</span> <span class="va">add_now</span></span>
+<span>      <span class="va">item</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">add_pre</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">item</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">add_pre</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">+</span> <span class="va">add_pre</span></span>
 <span>    <span class="op">}</span></span>
 <span>  <span class="op">}</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Prowise item updates triggered:"</span>, <span class="va">update_count</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">pers</span><span class="op">$</span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="va">theta_updated</span></span>
-<span>  <span class="va">item</span><span class="op">$</span><span class="va">b</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span></span>
-<span></span>
-<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    pers <span class="op">=</span> <span class="va">pers</span>,</span>
-<span>    item <span class="op">=</span> <span class="va">item</span>,</span>
-<span>    resp_cur <span class="op">=</span> <span class="va">resp</span></span>
-<span>  <span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>pers <span class="op">=</span> <span class="va">pers</span>, item <span class="op">=</span> <span class="va">item</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>This follows the same approach as Maths Garden for person ability updates.</p>
-<section class="level3"><h4 id="paired-item-updates">2. Paired Item Updates<a class="anchor" aria-label="anchor" href="#paired-item-updates"></a>
-</h4>
+</div>
+<div class="section level2">
+<h2 id="using-it">Using it<a class="anchor" aria-label="anchor" href="#using-it"></a>
+</h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">person</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">person_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span><span class="op">)</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="va">idx_now</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
-<span>      <span class="va">idx_prev</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span></span>
-<span>      <span class="va">item_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>      <span class="va">item_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>      <span class="va">s_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>      <span class="va">s_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>      <span class="va">e_now</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>      <span class="va">e_prev</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>      <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_beta</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="va">K_beta</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
-<span>      <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">+</span> <span class="va">kappa</span></span>
-<span>      <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">-</span> <span class="va">kappa</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>This implements the paired update mechanism: 1. For each person with multiple responses, consider consecutive pairs 2. Calculate the update term <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math> based on both current and previous responses 3. Apply <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>+</mi><mi>κ</mi></mrow><annotation encoding="application/x-tex">+\kappa</annotation></semantics></math> to the current item and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>κ</mi></mrow><annotation encoding="application/x-tex">-\kappa</annotation></semantics></math> to the previous item 4. This ensures the total difficulty change for the pair is zero</p>
-</section></section></section><section class="section level2"><h2 id="using-the-prowise-learn-algorithm">Using the Prowise Learn Algorithm<a class="anchor" aria-label="anchor" href="#using-the-prowise-learn-algorithm"></a>
-</h2>
-<section class="level2"><h3 id="basic-usage">Basic Usage<a class="anchor" aria-label="anchor" href="#basic-usage"></a>
-</h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Run simulation with Prowise Learn updates</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
-<span>  select_fun <span class="op">=</span> <span class="va">select_max_info</span>,</span>
-<span>  update_fun <span class="op">=</span> <span class="va">update_prowise_learn</span>,</span>
+<code class="sourceCode R"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
+<span>  select_fun  <span class="op">=</span> <span class="va">select_max_info</span>,</span>
+<span>  update_fun  <span class="op">=</span> <span class="va">update_prowise_learn</span>,</span>
 <span>  data_loader <span class="op">=</span> <span class="va">data_simple_1pl</span>,</span>
-<span>  data_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N_persons <span class="op">=</span> <span class="fl">100</span>, N_items <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</section><section class="level2"><h3 id="customizing-learning-rates">Customizing Learning Rates<a class="anchor" aria-label="anchor" href="#customizing-learning-rates"></a>
-</h3>
-<p>You can modify the learning rates by creating a wrapper function:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">update_prowise_learn_custom</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span>, <span class="va">K_theta</span> <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">K_beta</span> <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
-<span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
-<span></span>
-<span>  <span class="co"># Calculate expected probabilities</span></span>
-<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">diff</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Update theta (ability) for each person</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">resp_j</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span>, <span class="op">]</span></span>
-<span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_theta</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="co"># Paired item updates with custom learning rate</span></span>
-<span>  <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">person</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">person_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="va">idx_now</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
-<span>        <span class="va">idx_prev</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span></span>
-<span>        <span class="va">item_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">item_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">s_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">s_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">e_now</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">e_prev</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_beta</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="va">K_beta</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">+</span> <span class="va">kappa</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">-</span> <span class="va">kappa</span></span>
-<span>        <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="va">update_count</span> <span class="op">+</span> <span class="fl">1</span></span>
-<span>      <span class="op">}</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    theta_est <span class="op">=</span> <span class="va">theta_updated</span>,</span>
-<span>    diff_est <span class="op">=</span> <span class="va">diff_updated</span>,</span>
-<span>    resp_cur <span class="op">=</span> <span class="va">resp</span></span>
-<span>  <span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Use with custom learning rates</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
-<span>  select_fun <span class="op">=</span> <span class="va">select_max_info</span>,</span>
-<span>  update_fun <span class="op">=</span> <span class="va">update_prowise_learn_custom</span>,</span>
-<span>  data_loader <span class="op">=</span> <span class="va">data_simple_1pl</span>,</span>
-<span>  update_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>K_theta <span class="op">=</span> <span class="fl">0.05</span>, K_beta <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>,</span>
-<span>  data_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N_persons <span class="op">=</span> <span class="fl">100</span>, N_items <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</section></section><section class="section level2"><h2 id="advantages-and-limitations">Advantages and Limitations<a class="anchor" aria-label="anchor" href="#advantages-and-limitations"></a>
-</h2>
-<section class="level2"><h3 id="advantages">Advantages<a class="anchor" aria-label="anchor" href="#advantages"></a>
-</h3>
-<ol type="1">
-<li>
-<strong>Prevents Rating Drift</strong>: The paired update mechanism prevents systematic changes in item difficulties</li>
-<li>
-<strong>Maintains Relative Positions</strong>: Items maintain their relative difficulty ordering</li>
-<li>
-<strong>Real-time Updates</strong>: Both person and item parameters are updated simultaneously</li>
-<li>
-<strong>Computational Efficiency</strong>: Fast computation suitable for real-time applications</li>
-<li>
-<strong>Interpretable</strong>: The paired update mechanism has clear intuitive meaning</li>
-</ol></section><section class="level2"><h3 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
-</h3>
-<ol type="1">
-<li>
-<strong>Requires Multiple Responses</strong>: Paired updates only work when a person has multiple responses</li>
-<li>
-<strong>Order Dependency</strong>: The effectiveness depends on the order of item administration</li>
-<li>
-<strong>Fixed Learning Rates</strong>: Uses constant learning rates that don’t adapt to data</li>
-<li>
-<strong>No Uncertainty Quantification</strong>: Doesn’t provide confidence intervals or standard errors</li>
-<li>
-<strong>Assumes 1PL Model</strong>: Based on the Rasch model, may not fit data requiring 2PL or 3PL models</li>
-</ol></section></section><section class="section level2"><h2 id="extensions-and-modifications">Extensions and Modifications<a class="anchor" aria-label="anchor" href="#extensions-and-modifications"></a>
-</h2>
-<section class="level2"><h3 id="adaptive-learning-rates">Adaptive Learning Rates<a class="anchor" aria-label="anchor" href="#adaptive-learning-rates"></a>
-</h3>
-<p>You can implement adaptive learning rates that change based on the amount of data:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">update_prowise_learn_adaptive</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
-<span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
-<span></span>
-<span>  <span class="co"># Calculate expected probabilities</span></span>
-<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">diff</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Adaptive learning rates based on number of responses</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">resp_j</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span>, <span class="op">]</span></span>
-<span>    <span class="va">n_responses</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Decrease learning rate with more responses</span></span>
-<span>    <span class="va">K_theta_adaptive</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">n_responses</span> <span class="op">*</span> <span class="fl">0.1</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_theta_adaptive</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="co"># Paired item updates with adaptive rates</span></span>
-<span>  <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">person</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">person_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="va">resp_person</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span>, <span class="op">]</span></span>
-<span>        <span class="va">n_responses</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">resp_person</span><span class="op">)</span></span>
-<span>        <span class="va">K_beta_adaptive</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">n_responses</span> <span class="op">*</span> <span class="fl">0.1</span><span class="op">)</span></span>
-<span>        </span>
-<span>        <span class="va">idx_now</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
-<span>        <span class="va">idx_prev</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span></span>
-<span>        <span class="va">item_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">item_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">s_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">s_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">e_now</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">e_prev</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_beta_adaptive</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="va">K_beta_adaptive</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">+</span> <span class="va">kappa</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">-</span> <span class="va">kappa</span></span>
-<span>        <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="va">update_count</span> <span class="op">+</span> <span class="fl">1</span></span>
-<span>      <span class="op">}</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    theta_est <span class="op">=</span> <span class="va">theta_updated</span>,</span>
-<span>    diff_est <span class="op">=</span> <span class="va">diff_updated</span>,</span>
-<span>    resp_cur <span class="op">=</span> <span class="va">resp</span></span>
-<span>  <span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-</section><section class="level2"><h3 id="constrained-updates">Constrained Updates<a class="anchor" aria-label="anchor" href="#constrained-updates"></a>
-</h3>
-<p>You can add constraints to prevent extreme parameter values:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">update_prowise_learn_constrained</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span>, </span>
-<span>                                           <span class="va">theta_bounds</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>, </span>
-<span>                                           <span class="va">diff_bounds</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
-<span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
-<span></span>
-<span>  <span class="co"># Calculate expected probabilities</span></span>
-<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">diff</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Update theta with constraints</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">resp_j</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span>, <span class="op">]</span></span>
-<span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
-<span>    </span>
-<span>    <span class="co"># Apply constraints</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">theta_bounds</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">theta_bounds</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="co"># Paired item updates with constraints</span></span>
-<span>  <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">person</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">person_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="va">idx_now</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
-<span>        <span class="va">idx_prev</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span></span>
-<span>        <span class="va">item_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">item_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">s_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">s_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">e_now</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">e_prev</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">+</span> <span class="va">kappa</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">-</span> <span class="va">kappa</span></span>
-<span>        </span>
-<span>        <span class="co"># Apply constraints</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">diff_bounds</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">diff_bounds</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">diff_bounds</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">diff_bounds</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>        </span>
-<span>        <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="va">update_count</span> <span class="op">+</span> <span class="fl">1</span></span>
-<span>      <span class="op">}</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    theta_est <span class="op">=</span> <span class="va">theta_updated</span>,</span>
-<span>    diff_est <span class="op">=</span> <span class="va">diff_updated</span>,</span>
-<span>    resp_cur <span class="op">=</span> <span class="va">resp</span></span>
-<span>  <span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-</section></section><section class="section level2"><h2 id="best-practices">Best Practices<a class="anchor" aria-label="anchor" href="#best-practices"></a>
-</h2>
-<ol type="1">
-<li>
-<strong>Monitor Update Counts</strong>: Pay attention to the number of paired updates triggered</li>
-<li>
-<strong>Use Appropriate Learning Rates</strong>: Start with small learning rates (0.05-0.1) and adjust</li>
-<li>
-<strong>Consider Response Order</strong>: The effectiveness depends on the sequence of responses</li>
-<li>
-<strong>Validate Stability</strong>: Check that item difficulties remain stable over time</li>
-<li>
-<strong>Compare with Alternatives</strong>: Test against other methods to ensure effectiveness</li>
-<li>
-<strong>Handle Edge Cases</strong>: Consider what happens with few responses or single responses per person</li>
-</ol></section><section class="section level2"><h2 id="example-complete-workflow">Example: Complete Workflow<a class="anchor" aria-label="anchor" href="#example-complete-workflow"></a>
-</h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load required packages</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://klintkanopka.com/meow/">meow</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Define improved Prowise Learn function</span></span>
-<span><span class="va">update_prowise_learn_improved</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">diff</span>, <span class="va">resp</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">theta_updated</span> <span class="op">&lt;-</span> <span class="va">theta</span></span>
-<span>  <span class="va">diff_updated</span> <span class="op">&lt;-</span> <span class="va">diff</span></span>
-<span></span>
-<span>  <span class="co"># Calculate expected probabilities</span></span>
-<span>  <span class="va">E_Sij</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">]</span> <span class="op">-</span> <span class="va">diff</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Adaptive learning rates for person abilities</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">resp_j</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span>, <span class="op">]</span></span>
-<span>    <span class="va">n_responses</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">)</span></span>
-<span>    <span class="va">K_theta_adaptive</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">n_responses</span> <span class="op">*</span> <span class="fl">0.05</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="va">update_term</span> <span class="op">&lt;-</span> <span class="va">K_theta_adaptive</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">resp_j</span><span class="op">$</span><span class="va">resp</span> <span class="op">-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">update_term</span></span>
-<span>    <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">4</span>, <span class="va">theta_updated</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Constraints</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="co"># Paired item updates with adaptive rates</span></span>
-<span>  <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">person</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">person_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">person_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="va">resp_person</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">[</span><span class="va">resp</span><span class="op">$</span><span class="va">id</span> <span class="op">==</span> <span class="va">person</span>, <span class="op">]</span></span>
-<span>        <span class="va">n_responses</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">resp_person</span><span class="op">)</span></span>
-<span>        <span class="va">K_beta_adaptive</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">n_responses</span> <span class="op">*</span> <span class="fl">0.05</span><span class="op">)</span></span>
-<span>        </span>
-<span>        <span class="va">idx_now</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
-<span>        <span class="va">idx_prev</span> <span class="op">&lt;-</span> <span class="va">person_idx</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span></span>
-<span>        <span class="va">item_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">item_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">item</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">s_now</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">s_prev</span> <span class="op">&lt;-</span> <span class="va">resp</span><span class="op">$</span><span class="va">resp</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">e_now</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_now</span><span class="op">]</span></span>
-<span>        <span class="va">e_prev</span> <span class="op">&lt;-</span> <span class="va">E_Sij</span><span class="op">[</span><span class="va">idx_prev</span><span class="op">]</span></span>
-<span>        <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">K_beta_adaptive</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_now</span> <span class="op">-</span> <span class="va">e_now</span><span class="op">)</span> <span class="op">-</span> <span class="va">K_beta_adaptive</span> <span class="op">*</span> <span class="op">(</span><span class="va">s_prev</span> <span class="op">-</span> <span class="va">e_prev</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">+</span> <span class="va">kappa</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">-</span> <span class="va">kappa</span></span>
-<span>        </span>
-<span>        <span class="co"># Apply constraints</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">4</span>, <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_now</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">4</span>, <span class="va">diff_updated</span><span class="op">[</span><span class="va">item_prev</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>        </span>
-<span>        <span class="va">update_count</span> <span class="op">&lt;-</span> <span class="va">update_count</span> <span class="op">+</span> <span class="fl">1</span></span>
-<span>      <span class="op">}</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Prowise item updates triggered:"</span>, <span class="va">update_count</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    theta_est <span class="op">=</span> <span class="va">theta_updated</span>,</span>
-<span>    diff_est <span class="op">=</span> <span class="va">diff_updated</span>,</span>
-<span>    resp_cur <span class="op">=</span> <span class="va">resp</span></span>
-<span>  <span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Run simulation</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
-<span>  select_fun <span class="op">=</span> <span class="va">select_max_info</span>,</span>
-<span>  update_fun <span class="op">=</span> <span class="va">update_prowise_learn_improved</span>,</span>
-<span>  data_loader <span class="op">=</span> <span class="va">data_simple_1pl</span>,</span>
-<span>  data_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N_persons <span class="op">=</span> <span class="fl">100</span>, N_items <span class="op">=</span> <span class="fl">50</span>, data_seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
+<span>  data_args   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N_persons <span class="op">=</span> <span class="fl">100</span>, N_items <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span>
+<span>  update_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>K_theta <span class="op">=</span> <span class="fl">0.05</span>, K_b <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Analyze results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">results</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</section><script id="quarto-html-after-body" type="application/javascript">
-  window.document.addEventListener("DOMContentLoaded", function (event) {
-      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-      var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
-      var isInternal = (href) => {
-          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
-      }
-      // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
-      for (var i=0; i<links.length; i++) {
-        const link = links[i];
-        if (!isInternal(link.href)) {
-          // undo the damage that might have been done by quarto-nav.js in the case of
-          // links that we want to consider external
-          if (link.dataset.originalHref !== undefined) {
-            link.href = link.dataset.originalHref;
-          }
-        }
-      }
-    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
-      const config = {
-        allowHTML: true,
-        maxWidth: 500,
-        delay: 100,
-        arrow: false,
-        appendTo: function(el) {
-            return el.parentElement;
-        },
-        interactive: true,
-        interactiveBorder: 10,
-        theme: 'light-border',
-        placement: 'bottom-start',
-      };
-      if (contentFn) {
-        config.content = contentFn;
-      }
-      if (onTriggerFn) {
-        config.onTrigger = onTriggerFn;
-      }
-      if (onUntriggerFn) {
-        config.onUntrigger = onUntriggerFn;
-      }
-      window.tippy(el, config);
-    }
-    const findCites = (el) => {
-      const parentEl = el.parentElement;
-      if (parentEl) {
-        const cites = parentEl.dataset.cites;
-        if (cites) {
-          return {
-            el,
-            cites: cites.split(' ')
-          };
-        } else {
-          return findCites(el.parentElement)
-        }
-      } else {
-        return undefined;
-      }
-    };
-    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
-    for (var i=0; i<bibliorefs.length; i++) {
-      const ref = bibliorefs[i];
-      const citeInfo = findCites(ref);
-      if (citeInfo) {
-        tippyHover(citeInfo.el, function() {
-          var popup = window.document.createElement('div');
-          citeInfo.cites.forEach(function(cite) {
-            var citeDiv = window.document.createElement('div');
-            citeDiv.classList.add('hanging-indent');
-            citeDiv.classList.add('csl-entry');
-            var biblioDiv = window.document.getElementById('ref-' + cite);
-            if (biblioDiv) {
-              citeDiv.innerHTML = biblioDiv.innerHTML;
-            }
-            popup.appendChild(citeDiv);
-          });
-          return popup.innerHTML;
-        });
-      }
-    }
-  });
-  </script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">results</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   iter pers_theta_1_est pers_theta_2_est</span></span>
+<span><span class="co">#&gt; 1    1        0.1250000       -0.1250000</span></span>
+<span><span class="co">#&gt; 2    2        0.2656826       -0.2657371</span></span>
+<span><span class="co">#&gt; 3    3        0.3692123       -0.3715956</span></span>
+<span><span class="co">#&gt; 4    4        0.4806109       -0.4711769</span></span>
+<span><span class="co">#&gt; 5    5        0.5559021       -0.6101828</span></span>
+<span><span class="co">#&gt; 6    6        0.6200887       -0.7172594</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="practical-notes">Practical notes<a class="anchor" aria-label="anchor" href="#practical-notes"></a>
+</h2>
+<ul>
+<li>Paired updates require respondents to answer at least two items, so
+the item difficulties only begin to move once administration is under
+way.</li>
+<li>Effectiveness depends on the administration order; this is exactly
+why the matrix <code>admin</code> carries the order of
+administration.</li>
+<li>As with Maths Garden, keep learning rates modest and consider
+bounding the estimates for stability.</li>
+</ul>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
+
 
 
     <footer><div class="pkgdown-footer-left">

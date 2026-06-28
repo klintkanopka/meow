@@ -1,8 +1,5 @@
 # meow
 
-[![License:
-MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-
 `meow` is a package for conducting simulations of computer adaptive
 testing (CAT). The pitch here is that `meow` is a framework that
 facilitates reproducible comparisons between different combinations of
@@ -23,8 +20,49 @@ their research projects, facilitating more community interaction.
 
 Interested users can install using:
 
-    # install.packages("remotes")
-    remotes::install_github("klintkanopka/meow")
+``` r
+
+devtools::install_github("klintkanopka/meow")
+```
+
+## Usage
+
+A simulation is a single call to
+[`meow()`](http://klintkanopka.com/meow/reference/meow.md), which takes
+an item selection function, a parameter update function, and a data
+loader:
+
+``` r
+
+library(meow)
+
+sim <- meow(
+  select_fun  = select_max_info,    # item selection algorithm
+  update_fun  = update_theta_mle,   # parameter update algorithm
+  data_loader = data_simple_1pl,    # data generating process
+  data_args   = list(N_persons = 100, N_items = 50),
+  fix         = "item"              # treat item parameters as known
+)
+
+head(sim$results)   # per-iteration estimates and bias
+```
+
+`sim$results` is a tidy data frame (one row per iteration, est/bias
+columns per parameter) that plugs directly into `ggplot2`.
+`sim$adj_mats` holds the item co-exposure adjacency matrices.
+
+## Writing your own modules
+
+The real value of `meow` is in swapping in your own algorithms.
+Internally the simulation state is matrix-based for speed: item
+selection and parameter update functions receive a respondent-by-item
+response matrix `R` and an integer administration matrix `admin`, and
+person/item parameters stay as data frames so you can add arbitrary
+columns. See
+[`vignette("extending-meow")`](http://klintkanopka.com/meow/articles/extending-meow.md)
+for the full module contracts, or use
+[`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md) to
+work with long data frames instead.
 
 # Package index
 
@@ -32,8 +70,8 @@ Interested users can install using:
 
 The core of any individual simulation.
 
-- [`meow()`](http://klintkanopka.com/meow/reference/meow.md) : Conducts
-  a full CAT simulation.
+- [`meow()`](http://klintkanopka.com/meow/reference/meow.md) : Conduct a
+  full CAT simulation.
 
 ## Data Loaders
 
@@ -50,18 +88,15 @@ Load existing or simulate new data for use in a `meow` simulation.
 Included item selection algorithms.
 
 - [`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
-  : Item selection function based on network distance criterion.
+  : Item selection by network distance criterion.
 - [`select_max_dist_enhanced()`](http://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
-  : Enhanced network-based item selection with configurable edge weights
+  : Network-based item selection with configurable edge weights.
 - [`select_max_info()`](http://klintkanopka.com/meow/reference/select_max_info.md)
-  : Item selection function that delivers the the remaining item with
-  the highest information.
+  : Item selection by maximum Fisher information.
 - [`select_random()`](http://klintkanopka.com/meow/reference/select_random.md)
-  : Item selection function that delivers an item an item drawn at
-  random from the item bank to each respondent.
+  : Item selection by random draw from the remaining item bank.
 - [`select_sequential()`](http://klintkanopka.com/meow/reference/select_sequential.md)
-  : Item selection function that delivers the next item by item id
-  number, simulating a fixed test form.
+  : Item selection by item id, simulating a fixed test form.
 
 ## Parameter Update Functions
 
@@ -70,18 +105,22 @@ person parameters, while others simultaneously update person and item
 parameters.
 
 - [`update_maths_garden()`](http://klintkanopka.com/meow/reference/update_maths_garden.md)
-  : Elo-style updates of person and item parameters
+  : Elo-style updates of person and item parameters (Maths Garden).
 - [`update_prowise_learn()`](http://klintkanopka.com/meow/reference/update_prowise_learn.md)
-  : Elo-style updates of person and item parameters
+  : Elo-style updates with paired item comparisons (Prowise Learn).
 - [`update_theta_mle()`](http://klintkanopka.com/meow/reference/update_theta_mle.md)
-  : Updated person parameters based on MLE estimates
+  : Update person ability via maximum likelihood estimation.
 
 ## Utilities
 
 Additional helper functions.
 
 - [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md)
-  : Constructs an item pool adjacency matrix.
+  : Construct an item-pool adjacency matrix.
+- [`meow_administered()`](http://klintkanopka.com/meow/reference/meow_administered.md)
+  : Logical mask of administered items.
+- [`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md) :
+  Convert the matrix simulation state to a long data frame of responses.
 - [`edge_weight_inverse()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
   [`edge_weight_negative_log()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
   [`edge_weight_linear()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md)
@@ -95,6 +134,8 @@ Additional helper functions.
 
 Start-to-finish simulation workflows
 
+- [Extending meow: Writing Your Own
+  Modules](http://klintkanopka.com/meow/articles/extending-meow.md):
 - [Visualizing Item Exposure Control
   Methods](http://klintkanopka.com/meow/articles/meow-viz.md):
 

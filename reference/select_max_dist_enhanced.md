@@ -1,7 +1,8 @@
-# Enhanced network-based item selection with configurable edge weights
+# Network-based item selection with configurable edge weights.
 
-This function extends `select_max_dist` with flexible edge weight
-calculations.
+Extends
+[`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
+with a flexible edge weight calculation.
 
 ## Usage
 
@@ -9,8 +10,8 @@ calculations.
 select_max_dist_enhanced(
   pers,
   item,
-  resp,
-  resp_cur = NULL,
+  R,
+  admin,
   adj_mat = NULL,
   n_candidates = 1,
   edge_weight_fun = edge_weight_inverse,
@@ -22,38 +23,54 @@ select_max_dist_enhanced(
 
 - pers:
 
-  A dataframe of current respondent ability estimates.
+  A data frame of current respondent ability estimates.
 
 - item:
 
-  A dataframe of current item parameter estimates.
+  A data frame of current item parameter estimates.
 
-- resp:
+- R:
 
-  A long-form dataframe of all potential pre-simulated item responses.
+  A respondent-by-item matrix of potential responses.
 
-- resp_cur:
+- admin:
 
-  A long-form dataframe of administered item responses.
+  An integer administration matrix; `0` indicates an item has not been
+  administered to a respondent. See
+  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  details.
 
 - adj_mat:
 
-  An item-item adjacency matrix.
+  An item-item adjacency matrix. See
+  [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md).
 
 - n_candidates:
 
-  Number of farthest items to consider before applying information
-  criterion.
+  The number of farthest items to assemble into a candidate pool before
+  selecting the next item by maximum information. Allows users to trade
+  off network density against estimation efficiency.
 
 - edge_weight_fun:
 
-  Function to calculate edge weights from adjacency matrix.
+  A function that computes edge weights from the adjacency matrix. See
+  [`edge_weight_inverse()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md).
 
 - edge_weight_args:
 
-  Additional arguments for the edge weight function.
+  A named list of additional arguments for `edge_weight_fun`.
 
 ## Value
 
-A long-form dataframe of all previously administered item responses with
-the new responses from this iteration appended to the end.
+An updated administration matrix with the selected item marked for each
+respondent.
+
+## Examples
+
+``` r
+sim <- meow(select_max_dist_enhanced, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item",
+            select_args = list(edge_weight_fun = edge_weight_power))
+nrow(sim$results)
+#> [1] 6
+```

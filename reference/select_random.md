@@ -1,51 +1,56 @@
-# Item selection function that delivers an item an item drawn at random from the item bank to each respondent.
+# Item selection by random draw from the remaining item bank.
 
-Each respondent has their own next item drawn at random from the
-remaining items.
+Each respondent's next item is drawn at random from the items they have
+not yet been administered.
 
 ## Usage
 
 ``` r
-select_random(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL,
-  select_seed = NULL
-)
+select_random(pers, item, R, admin, adj_mat = NULL, select_seed = NULL)
 ```
 
 ## Arguments
 
 - pers:
 
-  A dataframe of current respondent ability estimates.
+  A data frame of current respondent ability estimates.
 
 - item:
 
-  A dataframe of current item parameter estimates.
+  A data frame of current item parameter estimates.
 
-- resp:
+- R:
 
-  A long-form dataframe of all potential pre-simulated item responses.
+  A respondent-by-item matrix of potential responses.
 
-- resp_cur:
+- admin:
 
-  A long-form dataframe of administered item responses.
+  An integer administration matrix; `0` indicates an item has not been
+  administered to a respondent. See
+  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  details.
 
 - adj_mat:
 
-  An item-item adjacency matrix, where each entry is the count of
-  individuals who have respondent to both item i and item j. See
-  documentation for `construct_adj_mat`
+  An item-item adjacency matrix. See
+  [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md).
 
 - select_seed:
 
-  A random seed used only for item selection. Cleared each time this
-  function is run.
+  A random seed used only for item selection. The seed is cleared after
+  use so that successive simulations vary unless a seed is given.
 
 ## Value
 
-A long-form dataframe of all previously administered item responses with
-the new responses from this iteration appended to the end.
+An updated administration matrix with a random next item marked for each
+respondent.
+
+## Examples
+
+``` r
+sim <- meow(select_random, update_theta_mle, data_simple_1pl,
+            data_args = list(N_persons = 10, N_items = 10), fix = "item",
+            select_args = list(select_seed = 1))
+nrow(sim$results)
+#> [1] 6
+```

@@ -1,206 +1,128 @@
 # Item Selection Functions
 
-Item selection functions are a crucial component of the `meow` framework
-that determine which item to administer next to each respondent during a
-computer adaptive testing simulation. These functions implement various
-algorithms for selecting the most appropriate item based on current
-parameter estimates and response patterns.
+Item selection functions determine which item is administered next to
+each respondent. They are one of the three swappable components of a
+`meow` simulation. For the full module contract, see
+[`vignette("extending-meow")`](http://klintkanopka.com/meow/articles/extending-meow.md);
+this vignette focuses on the bundled selectors and how to write your
+own.
 
-In this vignette, we will explore the available item selection functions
-and learn how to write custom ones for your specific research needs.
+## Function signature
 
-## Understanding Item Selection Functions
-
-Item selection functions in `meow` take the current state of the
-simulation and return the next set of responses to be included in the
-analysis. They receive information about:
-
-- Current person parameter estimates
-- Current item parameter estimates  
-- All available response data
-- Currently selected responses
-- Item-item adjacency matrix (for exposure control)
-
-### Function Signature
-
-All item selection functions must follow this signature:
+Every item selection function has the signature
 
 ``` r
-select_function <- function(
-  pers,            # Current person parameter estimates
-  item,            # Current item parameter estimates
-  resp,            # All available response data
-  resp_cur = NULL, # Currently selected responses
-  adj_mat = NULL,  # Item-item adjacency matrix
-  ...              # Additional arguments
-) {
-  # Function implementation
-  return(resp_new)
+
+select_fun <- function(pers, item, R, admin, adj_mat, ...) {
+  # ... decide which items to administer ...
+  return(admin)
 }
 ```
 
-### Return Values
+It receives the current person estimates (`pers`), item estimates
+(`item`), the respondent-by-item response matrix (`R`), the integer
+administration matrix (`admin`), and the item co-exposure matrix
+(`adj_mat`). It returns an administration matrix with the newly chosen
+cells marked non-zero. The harness records the order of administration,
+so you only need to *add* items.
 
-Item selection functions must return a dataframe in the same format as
-the input `resp` object - a long-form dataframe with columns `id`,
-`item`, and `resp`. This dataframe should contain all responses that
-should be included in the current iteration of the simulation.
+The unadministered items for respondent `i` are
+`which(admin[i, ] == 0)`, and the respondents still needing an item are
+`which(rowSums(admin == 0) > 0)`.
 
-## Available Item Selection Functions
+## Bundled selectors
 
-### Sequential Selection
+### Sequential
 
-The
 [`select_sequential()`](http://klintkanopka.com/meow/reference/select_sequential.md)
-function selects items in a predetermined order:
+administers the lowest-numbered remaining item to each respondent,
+producing a fixed linear form.
 
 ``` r
-select_sequential <- function(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL
-) {
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    ) |>
-      dplyr::slice_head(n = 1, by = .data$id)
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+
+select_sequential <- function(pers, item, R, admin, adj_mat = NULL) {
+  if (!any(admin != 0)) {
+    admin[, seq_len(min(5, ncol(admin)))] <- 1L  # seed the first five items
+    return(admin)
   }
-  return(resp_new)
+  unadmin <- admin == 0
+  has <- which(rowSums(unadmin) > 0)
+  nextcol <- max.col(unadmin[has, , drop = FALSE] + 0, ties.method = "first")
+  admin[cbind(has, nextcol)] <- 1L
+  admin
 }
 ```
 
-This function: 1. For the first iteration, selects the first 5 items for
-all respondents 2. For subsequent iterations, selects the next
-unadministered item for each respondent 3. Uses
-[`dplyr::anti_join()`](https://dplyr.tidyverse.org/reference/filter-joins.html)
-to find responses not yet included 4. Uses
-[`dplyr::slice_head()`](https://dplyr.tidyverse.org/reference/slice.html)
-to select one item per respondent
+### Random
 
-### Random Selection
-
-The
 [`select_random()`](http://klintkanopka.com/meow/reference/select_random.md)
-function selects items randomly:
+draws one remaining item per respondent at random. It accepts a
+`select_seed` for reproducibility, which it clears after use.
 
-``` r
-select_random <- function(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL,
-  select_seed = NULL
-) {
-  set.seed(select_seed)
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    ) |>
-      dplyr::slice_sample(n = 1, by = .data$id)
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
-  }
-  set.seed(NULL)
-  return(resp_new)
-}
-```
+### Maximum information
 
-This function: 1. Sets a random seed for reproducibility 2. For the
-first iteration, selects the first 5 items 3. For subsequent iterations,
-randomly selects one unadministered item per respondent 4. Uses
-[`dplyr::slice_sample()`](https://dplyr.tidyverse.org/reference/slice.html)
-for random selection 5. Clears the seed to avoid affecting downstream
-processes
-
-### Maximum Information Selection
-
-The
 [`select_max_info()`](http://klintkanopka.com/meow/reference/select_max_info.md)
-function selects items that maximize information at the current ability
-estimate:
+administers the remaining item with the greatest 2PL Fisher information,
+$`I(\theta) = a^2 P(\theta)(1 - P(\theta))`$, evaluated at each
+respondent’s current ability estimate. The information for every
+respondent-by-item combination is computed as a single matrix, and the
+maximum is taken per row.
+
+### Network distance
+
+[`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
+and
+[`select_max_dist_enhanced()`](http://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
+treat the item pool as a network whose edge weights are derived from the
+co-exposure matrix `adj_mat`. They administer the item farthest (by
+shortest-path distance) from the items a respondent has already seen,
+breaking ties by maximum information. See
+[`vignette("network-item-selection")`](http://klintkanopka.com/meow/articles/network-item-selection.md).
+
+## Writing a custom selector
+
+A custom selector need only follow the signature and return an updated
+`admin`. Here we administer the item whose difficulty is closest to a
+respondent’s current ability — a simple “target the trait” rule.
 
 ``` r
-select_max_info <- function(
-  pers,
-  item,
-  resp,
-  resp_cur = NULL,
-  adj_mat = NULL
-) {
-  if (is.null(resp_cur)) {
-    return(resp[resp$item <= 5, ])
-  } else {
-    resp_new <- dplyr::anti_join(
-      resp,
-      resp_cur,
-      by = c('id', 'item', 'resp')
-    ) |>
-      dplyr::left_join(pers, by = 'id') |>
-      dplyr::left_join(item, by = 'item') |>
-      dplyr::mutate(
-        info = .data$a^2 *
-          stats::plogis(.data$a * (.data$theta - .data$b)) *
-          (1 - stats::plogis(.data$a * (.data$theta - .data$b)))
-      ) |>
-      dplyr::slice_max(.data$info, n = 1, by = .data$id) |>
-      dplyr::select(.data$id, .data$item, .data$resp)
-    resp_new <- dplyr::bind_rows(resp_cur, resp_new)
+
+select_targeted <- function(pers, item, R, admin, adj_mat = NULL) {
+  if (!any(admin != 0)) {
+    admin[, seq_len(min(5, ncol(admin)))] <- 1L
+    return(admin)
   }
-  return(resp_new)
+  for (i in which(rowSums(admin == 0) > 0)) {
+    remaining <- which(admin[i, ] == 0)
+    gap <- abs(item$b[remaining] - pers$theta[i])
+    admin[i, remaining[which.min(gap)]] <- 1L
+  }
+  admin
 }
 ```
 
-This function: 1. For the first iteration, selects the first 5 items 2.
-For subsequent iterations, calculates Fisher information for each
-available item at each respondent’s current ability estimate 3. Selects
-the item with maximum information for each respondent 4. Uses the 2PL
-information function:
-$I(\theta) = a^{2} \cdot P(\theta) \cdot \left( 1 - P(\theta) \right)$
-
-## Best Practices
-
-1.  **Handle the first iteration**: Always check if `resp_cur` is `NULL`
-    and return an appropriate initial set of responses
-2.  **Use anti_join**: Always use
-    [`dplyr::anti_join()`](https://dplyr.tidyverse.org/reference/filter-joins.html)
-    to find unadministered items
-3.  **Return proper format**: Ensure your function returns a dataframe
-    with `id`, `item`, and `resp` columns
-4.  **Consider exposure control**: Use the `adj_mat` parameter to
-    implement exposure control if needed
-5.  **Document parameters**: Clearly document any additional parameters
-    your function accepts
-6.  **Test thoroughly**: Test your function with various scenarios
-    before using it in simulations
-
-## Using Custom Functions
-
-To use a custom item selection function in a simulation:
+Use it in a simulation by passing it as `select_fun`:
 
 ``` r
-# Define your custom function
-my_select_function <- function(pers, item, resp, resp_cur = NULL, adj_mat = NULL, ...) {
-  # Your implementation here
-}
 
-# Use it in simulation
-results <- meow(
-  select_fun = my_select_function,
-  update_fun = update_theta_mle,
+sim <- meow(
+  select_fun  = select_targeted,
+  update_fun  = update_theta_mle,
   data_loader = data_simple_1pl,
-  select_args = list(custom_param = 0.5),
-  data_args = list(N_persons = 100, N_items = 50)
+  data_args   = list(N_persons = 50, N_items = 30),
+  fix         = "item"
 )
+nrow(sim$results)
+#> [1] 26
 ```
+
+## Best practices
+
+1.  **Handle the first iteration** with `if (!any(admin != 0))` to seed
+    an initial set of items.
+2.  **Never un-administer** an item that has already been given.
+3.  **Implement stopping rules** by returning `admin` unchanged once a
+    respondent should receive no more items.
+4.  **Prefer matrix operations** over per-row loops where possible; use
+    [`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md)
+    only when long data is genuinely more convenient.

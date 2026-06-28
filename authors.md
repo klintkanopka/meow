@@ -10,16 +10,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/klintkanopka/meow/blob/main/DESCRIPTION)
+[`inst/CITATION`](https://github.com/klintkanopka/meow/blob/main/inst/CITATION)
 
-Kanopka K, Deng S (2025). *meow: Unified Framework for Computer Adaptive
-Testing Simulations*. R package version 1.0.0,
+Kanopka K, Deng S (2025). *meow: A Unified Framework for Conducting
+Simulations of Computer Adaptive Testing Algorithms in R*. R package,
 <http://klintkanopka.com/meow/>.
 
     @Manual{,
-      title = {meow: Unified Framework for Computer Adaptive Testing Simulations},
+      title = {meow: A Unified Framework for Conducting Simulations of Computer Adaptive Testing Algorithms in R},
       author = {Klint Kanopka and Sophia Deng},
       year = {2025},
-      note = {R package version 1.0.0},
+      note = {R package},
       url = {http://klintkanopka.com/meow/},
     }

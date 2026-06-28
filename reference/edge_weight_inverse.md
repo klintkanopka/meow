@@ -43,3 +43,13 @@ edge_weight_exponential(adj_mat, lambda = 0.1, alpha = 1)
 ## Value
 
 A matrix of edge weights for use in distance calculations
+
+## Examples
+
+``` r
+adj_mat <- matrix(c(3, 1, 1, 2), nrow = 2)
+edge_weight_inverse(adj_mat)
+#>      [,1]      [,2]
+#> [1,] 0.25 0.5000000
+#> [2,] 0.50 0.3333333
+```
