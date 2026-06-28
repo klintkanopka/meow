@@ -1,6 +1,6 @@
 # Network-Based Item Selection
 
-[`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
+[`select_max_dist()`](https://klintkanopka.com/meow/reference/select_max_dist.md)
 selects items using the *entire* item-exposure history. It treats the
 item pool as a weighted graph and administers the item farthest, in
 shortest-path distance, from the items a respondent has already seen.
@@ -42,9 +42,9 @@ edge_weight_exponential(adj_mat, lambda = 0.1)       # exp(-lambda*(adj_mat+alph
 
 ## Implementation
 
-[`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
+[`select_max_dist()`](https://klintkanopka.com/meow/reference/select_max_dist.md)
 follows the item selection contract
-([`vignette("item-selection")`](http://klintkanopka.com/meow/articles/item-selection.md)):
+([`vignette("item-selection")`](https://klintkanopka.com/meow/articles/item-selection.md)):
 it works on the matrix administration state and returns an updated
 `admin`. After the distance matrix is computed, the per-item distances
 are obtained with
@@ -75,7 +75,7 @@ select_max_dist <- function(pers, item, R, admin, adj_mat = NULL, n_candidates =
 }
 ```
 
-[`select_max_dist_enhanced()`](http://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
+[`select_max_dist_enhanced()`](https://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
 is identical except that the edge weights come from a user-supplied
 `edge_weight_fun` applied to `adj_mat` before
 [`Rfast::floyd()`](https://rdrr.io/pkg/Rfast/man/floyd.html).
@@ -99,7 +99,7 @@ nrow(sim$results)
 ```
 
 Swap in a different edge-weight function through
-[`select_max_dist_enhanced()`](http://klintkanopka.com/meow/reference/select_max_dist_enhanced.md):
+[`select_max_dist_enhanced()`](https://klintkanopka.com/meow/reference/select_max_dist_enhanced.md):
 
 ``` r
 
@@ -132,7 +132,7 @@ meow(
 - [`Rfast::floyd()`](https://rdrr.io/pkg/Rfast/man/floyd.html) is
   $`O(n^3)`$ in the number of items and is run each iteration, so
   network selection is more expensive than
-  [`select_max_info()`](http://klintkanopka.com/meow/reference/select_max_info.md).
+  [`select_max_info()`](https://klintkanopka.com/meow/reference/select_max_info.md).
 - Experiment with `n_candidates` (1–5) to trade exposure control against
   measurement efficiency, and compare against simpler selectors as a
   baseline.

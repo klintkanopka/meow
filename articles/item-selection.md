@@ -3,7 +3,7 @@
 Item selection functions determine which item is administered next to
 each respondent. They are one of the three swappable components of a
 `meow` simulation. For the full module contract, see
-[`vignette("extending-meow")`](http://klintkanopka.com/meow/articles/extending-meow.md);
+[`vignette("extending-meow")`](https://klintkanopka.com/meow/articles/extending-meow.md);
 this vignette focuses on the bundled selectors and how to write your
 own.
 
@@ -34,7 +34,7 @@ The unadministered items for respondent `i` are
 
 ### Sequential
 
-[`select_sequential()`](http://klintkanopka.com/meow/reference/select_sequential.md)
+[`select_sequential()`](https://klintkanopka.com/meow/reference/select_sequential.md)
 administers the lowest-numbered remaining item to each respondent,
 producing a fixed linear form.
 
@@ -55,13 +55,13 @@ select_sequential <- function(pers, item, R, admin, adj_mat = NULL) {
 
 ### Random
 
-[`select_random()`](http://klintkanopka.com/meow/reference/select_random.md)
+[`select_random()`](https://klintkanopka.com/meow/reference/select_random.md)
 draws one remaining item per respondent at random. It accepts a
 `select_seed` for reproducibility, which it clears after use.
 
 ### Maximum information
 
-[`select_max_info()`](http://klintkanopka.com/meow/reference/select_max_info.md)
+[`select_max_info()`](https://klintkanopka.com/meow/reference/select_max_info.md)
 administers the remaining item with the greatest 2PL Fisher information,
 $`I(\theta) = a^2 P(\theta)(1 - P(\theta))`$, evaluated at each
 respondent’s current ability estimate. The information for every
@@ -70,14 +70,14 @@ maximum is taken per row.
 
 ### Network distance
 
-[`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
+[`select_max_dist()`](https://klintkanopka.com/meow/reference/select_max_dist.md)
 and
-[`select_max_dist_enhanced()`](http://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
+[`select_max_dist_enhanced()`](https://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
 treat the item pool as a network whose edge weights are derived from the
 co-exposure matrix `adj_mat`. They administer the item farthest (by
 shortest-path distance) from the items a respondent has already seen,
 breaking ties by maximum information. See
-[`vignette("network-item-selection")`](http://klintkanopka.com/meow/articles/network-item-selection.md).
+[`vignette("network-item-selection")`](https://klintkanopka.com/meow/articles/network-item-selection.md).
 
 ## Writing a custom selector
 
@@ -124,5 +124,5 @@ nrow(sim$results)
 3.  **Implement stopping rules** by returning `admin` unchanged once a
     respondent should receive no more items.
 4.  **Prefer matrix operations** over per-row loops where possible; use
-    [`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md)
+    [`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md)
     only when long data is genuinely more convenient.

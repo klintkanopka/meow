@@ -1,7 +1,7 @@
 # Network-based item selection with configurable edge weights.
 
 Extends
-[`select_max_dist()`](http://klintkanopka.com/meow/reference/select_max_dist.md)
+[`select_max_dist()`](https://klintkanopka.com/meow/reference/select_max_dist.md)
 with a flexible edge weight calculation.
 
 ## Usage
@@ -37,13 +37,13 @@ select_max_dist_enhanced(
 
   An integer administration matrix; `0` indicates an item has not been
   administered to a respondent. See
-  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  [`meow()`](https://klintkanopka.com/meow/reference/meow.md) for
   details.
 
 - adj_mat:
 
   An item-item adjacency matrix. See
-  [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md).
+  [`construct_adj_mat()`](https://klintkanopka.com/meow/reference/construct_adj_mat.md).
 
 - n_candidates:
 
@@ -54,7 +54,7 @@ select_max_dist_enhanced(
 - edge_weight_fun:
 
   A function that computes edge weights from the adjacency matrix. See
-  [`edge_weight_inverse()`](http://klintkanopka.com/meow/reference/edge_weight_inverse.md).
+  [`edge_weight_inverse()`](https://klintkanopka.com/meow/reference/edge_weight_inverse.md).
 
 - edge_weight_args:
 

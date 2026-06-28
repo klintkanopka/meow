@@ -99,7 +99,7 @@ column per item, are passed to the user-supplied modules:
   item has not been administered to that respondent; a positive entry
   means it has, and the value encodes the order of administration. Use
   `admin != 0` (or
-  [`meow_administered()`](http://klintkanopka.com/meow/reference/meow_administered.md))
+  [`meow_administered()`](https://klintkanopka.com/meow/reference/meow_administered.md))
   as an administered mask.
 
 Person and item *parameters* are kept as data frames (`pers` and
@@ -121,7 +121,7 @@ A **parameter update** function receives `pers`, `item`, `R`, and
 and `item` data frames.
 
 Module authors who prefer long data frames can convert with
-[`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md).
+[`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md).
 
 ## Examples
 

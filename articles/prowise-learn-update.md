@@ -2,7 +2,7 @@
 
 The Prowise Learn algorithm (Vermeiren et al., 2025) extends the
 Elo-style Maths Garden updates
-([`vignette("maths-garden-update")`](http://klintkanopka.com/meow/articles/maths-garden-update.md))
+([`vignette("maths-garden-update")`](https://klintkanopka.com/meow/articles/maths-garden-update.md))
 with **paired item updates** that counteract rating drift — the tendency
 for item difficulty estimates to slide systematically over time.
 
@@ -32,7 +32,7 @@ Rasch model, $`E(S_{ij}) = 1 / (1 + e^{-(\theta_j - b_i)})`$.
 ## Implementation in `meow`
 
 Paired updates are inherently **order dependent**, so
-[`update_prowise_learn()`](http://klintkanopka.com/meow/reference/update_prowise_learn.md)
+[`update_prowise_learn()`](https://klintkanopka.com/meow/reference/update_prowise_learn.md)
 uses `meow_long(R, admin)`, which returns the administered responses
 ordered by respondent and then by administration order. Consecutive
 within-respondent rows form the pairs; the per-item contributions are

@@ -30,7 +30,7 @@ update_maths_garden(pers, item, R, admin, K_theta = 0.1, K_b = 0.1)
 
   An integer administration matrix; non-zero entries indicate
   administered items. See
-  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  [`meow()`](https://klintkanopka.com/meow/reference/meow.md) for
   details.
 
 - K_theta:

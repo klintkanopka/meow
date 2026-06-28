@@ -29,13 +29,13 @@ select_max_dist(pers, item, R, admin, adj_mat = NULL, n_candidates = 1)
 
   An integer administration matrix; `0` indicates an item has not been
   administered to a respondent. See
-  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  [`meow()`](https://klintkanopka.com/meow/reference/meow.md) for
   details.
 
 - adj_mat:
 
   An item-item adjacency matrix. See
-  [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md).
+  [`construct_adj_mat()`](https://klintkanopka.com/meow/reference/construct_adj_mat.md).
 
 - n_candidates:
 

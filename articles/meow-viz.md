@@ -15,7 +15,7 @@ library(tidyverse)
 ## No exposure controls
 
 For a baseline, we use the built-in
-[`select_max_info()`](http://klintkanopka.com/meow/reference/select_max_info.md)
+[`select_max_info()`](https://klintkanopka.com/meow/reference/select_max_info.md)
 selector with 1PL data and MLE ability updates:
 
 ``` r

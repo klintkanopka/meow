@@ -28,7 +28,7 @@ update_theta_mle(pers, item, R, admin)
 
   An integer administration matrix; non-zero entries indicate
   administered items. See
-  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for
+  [`meow()`](https://klintkanopka.com/meow/reference/meow.md) for
   details.
 
 ## Value

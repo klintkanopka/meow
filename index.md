@@ -28,7 +28,7 @@ devtools::install_github("klintkanopka/meow")
 ## Usage
 
 A simulation is a single call to
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md), which takes
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md), which takes
 an item selection function, a parameter update function, and a data
 loader:
 
@@ -59,7 +59,7 @@ selection and parameter update functions receive a respondent-by-item
 response matrix `R` and an integer administration matrix `admin`, and
 person/item parameters stay as data frames so you can add arbitrary
 columns. See
-[`vignette("extending-meow")`](http://klintkanopka.com/meow/articles/extending-meow.md)
+[`vignette("extending-meow")`](https://klintkanopka.com/meow/articles/extending-meow.md)
 for the full module contracts, or use
-[`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md) to
+[`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md) to
 work with long data frames instead.

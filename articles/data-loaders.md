@@ -1,7 +1,7 @@
 # Data Loaders
 
 The `meow` framework is built around a central function,
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md). This
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md). This
 function relies on three other ingredients to build your simulation:
 
 1.  A *data loader* that either loads or generates the data to simulate
@@ -18,7 +18,7 @@ ones, and how to write your own.
 
 A data loader returns a list with three named components: `resp`,
 `pers_tru`, and `item_tru`. The simplest loader,
-[`data_existing()`](http://klintkanopka.com/meow/reference/data_existing.md),
+[`data_existing()`](https://klintkanopka.com/meow/reference/data_existing.md),
 just reads them from files:
 
 ``` r
@@ -39,7 +39,7 @@ columns, aligned to the standard used by the [Item Response
 Warehouse](https://itemresponsewarehouse.org/): `id` (a 1-indexed
 respondent identifier), `item` (a 1-indexed item identifier), and `resp`
 (the response $`x_{ij}`$, with $`x_{ij} \in \{0, 1\}`$ for dichotomous
-items). [`meow()`](http://klintkanopka.com/meow/reference/meow.md)
+items). [`meow()`](https://klintkanopka.com/meow/reference/meow.md)
 converts this long table into a respondent-by-item matrix once, before
 the simulation loop.
 
@@ -61,7 +61,7 @@ freely.
 ### Function arguments
 
 A data loader is the first thing
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md) calls, so it
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md) calls, so it
 has no required arguments — it may take whatever you pass through
 `data_args`. The only names to avoid are those the harness supplies to
 the other modules: `pers`, `item`, `R`, `admin`, `adj_mat`, and
@@ -69,7 +69,7 @@ the other modules: `pers`, `item`, `R`, `admin`, `adj_mat`, and
 
 ## The bundled 1PL loader
 
-[`data_simple_1pl()`](http://klintkanopka.com/meow/reference/data_simple_1pl.md)
+[`data_simple_1pl()`](https://klintkanopka.com/meow/reference/data_simple_1pl.md)
 generates data from a 1PL model with standard-normal abilities and
 difficulties:
 

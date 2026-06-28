@@ -4,28 +4,29 @@
 
 The structure and design of the core components of the `meow` framework
 
-- [Data Loaders](http://klintkanopka.com/meow/articles/data-loaders.md):
+- [Data
+  Loaders](https://klintkanopka.com/meow/articles/data-loaders.md):
 - [Item Selection
-  Functions](http://klintkanopka.com/meow/articles/item-selection.md):
+  Functions](https://klintkanopka.com/meow/articles/item-selection.md):
 - [Parameter Update
-  Functions](http://klintkanopka.com/meow/articles/parameter-update.md):
+  Functions](https://klintkanopka.com/meow/articles/parameter-update.md):
 
 ### Working with `meow`
 
 Start-to-finish simulation workflows
 
 - [Extending meow: Writing Your Own
-  Modules](http://klintkanopka.com/meow/articles/extending-meow.md):
+  Modules](https://klintkanopka.com/meow/articles/extending-meow.md):
 - [Visualizing Item Exposure Control
-  Methods](http://klintkanopka.com/meow/articles/meow-viz.md):
+  Methods](https://klintkanopka.com/meow/articles/meow-viz.md):
 
 ### Implementations
 
 Deeper dives into specific implementations
 
 - [Implementing the Maths Garden Update
-  Algorithm](http://klintkanopka.com/meow/articles/maths-garden-update.md):
+  Algorithm](https://klintkanopka.com/meow/articles/maths-garden-update.md):
 - [Implementing the Prowise Learn Update
-  Algorithm](http://klintkanopka.com/meow/articles/prowise-learn-update.md):
+  Algorithm](https://klintkanopka.com/meow/articles/prowise-learn-update.md):
 - [Network-Based Item
-  Selection](http://klintkanopka.com/meow/articles/network-item-selection.md):
+  Selection](https://klintkanopka.com/meow/articles/network-item-selection.md):

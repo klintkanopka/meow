@@ -31,9 +31,9 @@ an item answered correctly more often than expected becomes easier.
 
 ## Implementation in `meow`
 
-[`update_maths_garden()`](http://klintkanopka.com/meow/reference/update_maths_garden.md)
+[`update_maths_garden()`](https://klintkanopka.com/meow/reference/update_maths_garden.md)
 follows the parameter update contract
-([`vignette("parameter-update")`](http://klintkanopka.com/meow/articles/parameter-update.md)):
+([`vignette("parameter-update")`](https://klintkanopka.com/meow/articles/parameter-update.md)):
 it reads the administered responses from the matrix state and returns
 updated `pers` and `item` data frames. The prediction errors are
 aggregated per respondent and per item with

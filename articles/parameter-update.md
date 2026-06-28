@@ -3,7 +3,7 @@
 Parameter update functions re-estimate person and item parameters from
 the responses administered so far. They are the estimation engine of a
 `meow` simulation. For the full module contract, see
-[`vignette("extending-meow")`](http://klintkanopka.com/meow/articles/extending-meow.md).
+[`vignette("extending-meow")`](https://klintkanopka.com/meow/articles/extending-meow.md).
 
 ## Function signature
 
@@ -36,7 +36,7 @@ or, equivalently, as a long data frame with `meow_long(R, admin)`.
 
 ### Maximum likelihood ability estimation
 
-[`update_theta_mle()`](http://klintkanopka.com/meow/reference/update_theta_mle.md)
+[`update_theta_mle()`](https://klintkanopka.com/meow/reference/update_theta_mle.md)
 treats item parameters as fixed and finds each respondent’s 2PL maximum
 likelihood ability estimate, constrained to $`[-4, 4]`$. The
 log-likelihood is fully vectorized over the administered responses:
@@ -53,7 +53,7 @@ est <- stats::optim(pers$theta, loglik, lower = -4, upper = 4,
 
 ### Elo-style updates (Maths Garden)
 
-[`update_maths_garden()`](http://klintkanopka.com/meow/reference/update_maths_garden.md)
+[`update_maths_garden()`](https://klintkanopka.com/meow/reference/update_maths_garden.md)
 updates both abilities and difficulties with the on-the-fly Elo rule of
 Klinkenberg, Straatemeier, and van der Maas (2011):
 
@@ -63,15 +63,15 @@ Klinkenberg, Straatemeier, and van der Maas (2011):
 ```
 
 See
-[`vignette("maths-garden-update")`](http://klintkanopka.com/meow/articles/maths-garden-update.md).
+[`vignette("maths-garden-update")`](https://klintkanopka.com/meow/articles/maths-garden-update.md).
 
 ### Paired Elo updates (Prowise Learn)
 
-[`update_prowise_learn()`](http://klintkanopka.com/meow/reference/update_prowise_learn.md)
+[`update_prowise_learn()`](https://klintkanopka.com/meow/reference/update_prowise_learn.md)
 updates abilities with the same rule, but updates item difficulties
 through paired comparisons of consecutively administered items, which
 controls rating drift (Vermeiren et al., 2025). See
-[`vignette("prowise-learn-update")`](http://klintkanopka.com/meow/articles/prowise-learn-update.md).
+[`vignette("prowise-learn-update")`](https://klintkanopka.com/meow/articles/prowise-learn-update.md).
 
 ## Writing a custom updater
 
@@ -113,6 +113,6 @@ nrow(sim$results)
     ([`tapply()`](https://rdrr.io/r/base/tapply.html), matrix indexing)
     rather than looping over respondents or items.
 4.  **Respect administration order** when it matters:
-    [`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md)
+    [`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md)
     returns responses ordered by respondent and then by administration
     order, which is what paired-comparison methods rely on.

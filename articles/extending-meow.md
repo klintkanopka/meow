@@ -9,7 +9,7 @@ functions**, and **parameter update functions**.
 ## The simulation state
 
 A `meow` simulation is a single call to
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md), which
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md), which
 repeatedly alternates between an item selection step and a parameter
 update step until no further items are administered. For speed, the
 simulation state is represented with **matrices** rather than long data
@@ -21,7 +21,7 @@ frames:
 | `admin` | respondents x items integer | `0` if an item has not been administered; a positive value if it has. |
 | `pers` | data frame | Person parameter estimates. First column `id`, then one column per parameter. |
 | `item` | data frame | Item parameter estimates. First column `item`, then one column per parameter. |
-| `adj_mat` | items x items matrix | Item co-exposure counts (see [`construct_adj_mat()`](http://klintkanopka.com/meow/reference/construct_adj_mat.md)). |
+| `adj_mat` | items x items matrix | Item co-exposure counts (see [`construct_adj_mat()`](https://klintkanopka.com/meow/reference/construct_adj_mat.md)). |
 
 Two design choices are worth calling out:
 
@@ -62,7 +62,7 @@ A data loader sets up a simulation. It takes any arguments you like
 - `item_tru` — true item parameters; first column `item`, then
   parameters.
 
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md) turns `resp`
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md) turns `resp`
 into the response matrix `R` once, before the loop starts, so the
 loader’s job is only to produce the bank of potential responses and the
 ground-truth parameters.
@@ -183,7 +183,7 @@ update_pct_correct <- function(pers, item, R, admin, rate = 0.5) {
 ## Putting it together
 
 Custom modules plug into
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md) exactly like
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md) exactly like
 the bundled ones. Extra arguments are passed through `select_args`,
 `update_args`, and `data_args`.
 
@@ -213,7 +213,7 @@ The output object has the same shape no matter which modules you use — a
 for each parameter), a list of adjacency matrices in `adj_mats`, and the
 true parameters in `pers_tru` and `item_tru`. That consistency is what
 lets you reuse analysis and plotting code across studies; see
-[`vignette("meow-viz")`](http://klintkanopka.com/meow/articles/meow-viz.md).
+[`vignette("meow-viz")`](https://klintkanopka.com/meow/articles/meow-viz.md).
 
 ## Checklist
 
@@ -223,9 +223,9 @@ lets you reuse analysis and plotting code across studies; see
 - Parameter update functions take `(pers, item, R, admin, ...)` and
   return `list(pers, item)`.
 - Use `admin != 0` (or
-  [`meow_administered()`](http://klintkanopka.com/meow/reference/meow_administered.md))
+  [`meow_administered()`](https://klintkanopka.com/meow/reference/meow_administered.md))
   for the administered mask, and
-  [`meow_long()`](http://klintkanopka.com/meow/reference/meow_long.md)
+  [`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md)
   if you want long data frames.
 - Do not un-administer items, and implement stopping rules by declining
   to administer anything further.

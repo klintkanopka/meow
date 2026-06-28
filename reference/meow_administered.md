@@ -15,7 +15,7 @@ meow_administered(admin)
 - admin:
 
   An administration matrix (see
-  [`meow()`](http://klintkanopka.com/meow/reference/meow.md)).
+  [`meow()`](https://klintkanopka.com/meow/reference/meow.md)).
 
 ## Value
 

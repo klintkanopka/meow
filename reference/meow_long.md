@@ -1,6 +1,6 @@
 # Convert the matrix simulation state to a long data frame of responses.
 
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md) represents
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md) represents
 responses as a respondent-by-item matrix (`R`) together with an
 administration matrix (`admin`). This helper returns the administered
 responses as a long data frame with columns `id`, `item`, and `resp`,

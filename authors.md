@@ -14,12 +14,12 @@ Source:
 
 Kanopka K, Deng S (2025). *meow: A Unified Framework for Conducting
 Simulations of Computer Adaptive Testing Algorithms in R*. R package,
-<http://klintkanopka.com/meow/>.
+<https://klintkanopka.com/meow/>.
 
     @Manual{,
       title = {meow: A Unified Framework for Conducting Simulations of Computer Adaptive Testing Algorithms in R},
       author = {Klint Kanopka and Sophia Deng},
       year = {2025},
       note = {R package},
-      url = {http://klintkanopka.com/meow/},
+      url = {https://klintkanopka.com/meow/},
     }

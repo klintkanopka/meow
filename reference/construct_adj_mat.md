@@ -5,9 +5,9 @@ diagonal elements contain the number of times each item has been
 administered. The off-diagonal element \\(i, j)\\ contains the number of
 respondents who have been administered both item \\i\\ and item \\j\\.
 In general this function is not called directly, but is instead called
-within [`meow()`](http://klintkanopka.com/meow/reference/meow.md). It is
-exposed to aid users who are testing item selection functions they have
-written.
+within [`meow()`](https://klintkanopka.com/meow/reference/meow.md). It
+is exposed to aid users who are testing item selection functions they
+have written.
 
 ## Usage
 
@@ -22,9 +22,9 @@ construct_adj_mat(admin)
   An administration matrix with one row per respondent and one column
   per item. Non-zero entries indicate that an item has been administered
   to a respondent (see
-  [`meow()`](http://klintkanopka.com/meow/reference/meow.md) for details
-  of the matrix-based simulation state). A logical matrix is also
-  accepted.
+  [`meow()`](https://klintkanopka.com/meow/reference/meow.md) for
+  details of the matrix-based simulation state). A logical matrix is
+  also accepted.
 
 ## Value
 

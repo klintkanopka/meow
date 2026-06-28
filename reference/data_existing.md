@@ -3,7 +3,7 @@
 `data_existing()` is a wrapper for three separate calls to
 [`read.csv()`](https://rdrr.io/r/utils/read.table.html) that packages
 the output into the object used by
-[`meow()`](http://klintkanopka.com/meow/reference/meow.md).
+[`meow()`](https://klintkanopka.com/meow/reference/meow.md).
 
 ## Usage
 
