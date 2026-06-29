@@ -21,7 +21,8 @@ test_that("selectors seed the first five items when nothing is administered", {
 })
 
 test_that("selectors return an administration matrix that adds exactly one item per person", {
-  for (nm in c("select_sequential", "select_max_info", "select_max_dist", "select_max_dist_enhanced")) {
+  for (nm in c("select_sequential", "select_max_info", "select_max_dist",
+               "select_max_dist_enhanced", "select_restrict_rate")) {
     fun <- get(nm)
     res <- fun(out$pers_tru, out$item_tru, R, admin_started, adj_started)
     expect_true(is.matrix(res), info = nm)
@@ -52,6 +53,32 @@ test_that("select_max_info picks the most informative remaining item", {
     info <- a[cand]^2 * p * (1 - p)
     expect_equal(new_item[i], cand[which.max(info)])
   }
+})
+
+test_that("select_restrict_rate withholds over-exposed items and can skip a respondent", {
+  # 4 respondents, 3 items. Respondent 1 has items 1-2 and needs item 3;
+  # respondents 2-4 have items 1 and 3 and need item 2.
+  admin <- rbind(
+    c(1L, 1L, 0L),
+    c(1L, 0L, 1L),
+    c(1L, 0L, 1L),
+    c(1L, 0L, 1L)
+  )
+  adj <- construct_adj_mat(admin)            # exposures: item1=4, item2=1, item3=3
+  pers <- data.frame(id = 1:4, theta = rep(0, 4))
+  item <- data.frame(item = 1:3, b = c(0, 0, 0), a = c(1, 1, 1))
+  Rm <- matrix(1, 4, 3)
+
+  # With r_max = 0.3, only item 2 (rate 1/8) is permitted; items 1 and 3 exceed it.
+  res <- select_restrict_rate(pers, item, Rm, admin, adj, r_max = 0.3)
+
+  # respondent 1's only unadministered item (3) is over-exposed -> skipped
+  expect_equal(res[1, ], admin[1, ])
+  # respondents 2-4 receive the only permitted item (2)
+  expect_true(all(res[2:4, 2] != 0))
+  # no over-exposed item is ever newly administered
+  newly <- res != 0 & admin == 0
+  expect_false(any(newly[, c(1, 3)]))
 })
 
 test_that("select_random is reproducible with a fixed seed", {

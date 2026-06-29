@@ -18,7 +18,8 @@ First public release.
     list with updated `pers` and `item` data frames.
 * Bundled data loaders (`data_existing()`, `data_simple_1pl()`), item selectors
   (`select_sequential()`, `select_random()`, `select_max_info()`,
-  `select_max_dist()`, `select_max_dist_enhanced()`), and parameter updaters
+  `select_restrict_rate()`, `select_max_dist()`,
+  `select_max_dist_enhanced()`), and parameter updaters
   (`update_theta_mle()`, `update_maths_garden()`, `update_prowise_learn()`).
 * Helpers for module authors: `meow_long()` converts the matrix state to a long
   `(id, item, resp)` data frame, `meow_administered()` returns a logical mask of

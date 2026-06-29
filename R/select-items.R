@@ -7,11 +7,16 @@
 }
 
 # Internal helper: 2PL item information for every respondent-item combination.
-# Returns a respondents-by-items matrix of a^2 * p * (1 - p).
+# Returns a respondents-by-items matrix of a^2 * p * (1 - p). Uses column-major
+# recycling rather than sweep()/outer(), which is meaningfully faster on the hot
+# path while producing identical values.
 .info_matrix <- function(theta, a, b) {
-  lin <- sweep(outer(theta, b, '-'), 2, a, '*')
+  n <- length(theta)
+  lin <- (theta - rep(b, each = n)) * rep(a, each = n)
   P <- stats::plogis(lin)
-  sweep(P * (1 - P), 2, a^2, '*')
+  info <- P * (1 - P) * rep(a^2, each = n)
+  dim(info) <- c(n, length(b))
+  info
 }
 
 # Internal helper: network-distance item selection shared by select_max_dist()
@@ -138,6 +143,58 @@ select_max_info <- function(pers, item, R, admin, adj_mat = NULL) {
   info <- .info_matrix(pers$theta, item$a, item$b)
   info[admin != 0] <- -Inf
   has <- which(rowSums(admin == 0) > 0)
+  if (length(has) > 0) {
+    pick <- max.col(info[has, , drop = FALSE], ties.method = 'first')
+    admin[cbind(has, pick)] <- 1L
+  }
+  return(admin)
+}
+
+
+#' Maximum-information item selection with an exposure-rate cap.
+#'
+#' A maximum Fisher information selector with a simple exposure control. Each
+#' item's share of all administrations so far (the diagonal of `adj_mat`,
+#' normalized to sum to one) is treated as an exposure rate, and items whose rate
+#' has reached `r_max` are withheld. The most informative permitted item is then
+#' administered to each respondent. If a respondent has no permitted
+#' unadministered item, they receive no item that iteration; when this occurs for
+#' every remaining respondent at once, the simulation administers nothing new and
+#' stops, so this selector also acts as an implicit stopping rule.
+#'
+#' Because the exposure rate is each item's share of all administrations, its
+#' average across items is `1 / N_items`. Values of `r_max` above `1 / N_items`
+#' rarely bind, values near it bind only transiently, and values below it induce
+#' early stopping.
+#'
+#' @inheritParams select_sequential
+#' @param r_max The maximum permitted exposure rate (an item's share of all
+#'   administrations) before that item is withheld. Defaults to 0.025.
+#' @returns An updated administration matrix with the most informative permitted
+#'   item marked for each respondent who still has one.
+#'
+#' @examples
+#' sim <- meow(select_restrict_rate, update_theta_mle, data_simple_1pl,
+#'             data_args = list(N_persons = 10, N_items = 10), fix = "item",
+#'             select_args = list(r_max = 0.2))
+#' nrow(sim$results)
+#'
+#' @export
+select_restrict_rate <- function(pers, item, R, admin, adj_mat = NULL, r_max = 0.025) {
+  if (!any(admin != 0)) {
+    return(.administer_initial(admin))
+  }
+  # Treat each item's share of all administrations as its exposure rate and
+  # withhold items whose rate has reached r_max.
+  exposures <- diag(adj_mat)
+  allowed <- (exposures / sum(exposures)) < r_max
+
+  info <- .info_matrix(pers$theta, item$a, item$b)
+  info[admin != 0] <- -Inf # exclude already-administered items
+  info[, !allowed] <- -Inf # exclude over-exposed items
+
+  # Serve only respondents that still have a permitted, unadministered item.
+  has <- which(rowSums((admin == 0) & rep(allowed, each = nrow(admin))) > 0)
   if (length(has) > 0) {
     pick <- max.col(info[has, , drop = FALSE], ties.method = 'first')
     admin[cbind(has, pick)] <- 1L

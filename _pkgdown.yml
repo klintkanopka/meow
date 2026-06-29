@@ -4,6 +4,12 @@ template:
   light-switch: true
 
 articles:
+- title: Getting Started
+  desc: A start-to-finish simulation workflow
+  navbar: ~
+  contents:
+  - intro-viz
+
 - title: Building Blocks
   desc:  The structure and design of the core components of the `meow` framework
   navbar: ~
@@ -11,13 +17,7 @@ articles:
   - data-loaders
   - item-selection
   - parameter-update
-
-- title: Working with `meow`
-  desc: Start-to-finish simulation workflows
-  navbar: ~
-  contents:
   - extending-meow
-  - meow-viz
 
 - title: Implementations
   desc: Deeper dives into specific implementations
