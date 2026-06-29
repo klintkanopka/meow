@@ -38,11 +38,11 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
+<li><a class="dropdown-item" href="../articles/intro-viz.html">The `meow` Workflow: Visualizing Exposure Control Methods</a></li>
+    <li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
     <li><a class="dropdown-item" href="../articles/item-selection.html">Item Selection Functions</a></li>
     <li><a class="dropdown-item" href="../articles/parameter-update.html">Parameter Update Functions</a></li>
     <li><a class="dropdown-item" href="../articles/extending-meow.html">Extending meow: Writing Your Own Modules</a></li>
-    <li><a class="dropdown-item" href="../articles/meow-viz.html">Visualizing Item Exposure Control Methods</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -85,18 +85,18 @@
     
 <p>The whole point of <code>meow</code> is that you can drop your own
 algorithms into a shared simulation harness and compare them, on equal
-footing, against existing methods. This vignette is the authoritative
-reference for the three kinds of module you can write: <strong>data
-loaders</strong>, <strong>item selection functions</strong>, and
-<strong>parameter update functions</strong>.</p>
+footing, against competing methods. This vignette is meant to serve as
+the authoritative reference for the three kinds of modules you can
+write: <strong>data loaders</strong>, <strong>item selection
+functions</strong>, and <strong>parameter update functions</strong>.</p>
 <div class="section level2">
 <h2 id="the-simulation-state">The simulation state<a class="anchor" aria-label="anchor" href="#the-simulation-state"></a>
 </h2>
-<p>A <code>meow</code> simulation is a single call to
+<p>A single <code>meow</code> simulation is a conducted with one call to
 <code><a href="../reference/meow.html">meow()</a></code>, which repeatedly alternates between an item
 selection step and a parameter update step until no further items are
-administered. For speed, the simulation state is represented with
-<strong>matrices</strong> rather than long data frames:</p>
+administered. For speed and flexibility, the simulation state is
+represented internally with <strong>matrices</strong>:</p>
 <table class="table">
 <colgroup>
 <col width="8%">
@@ -140,26 +140,31 @@ column per parameter.</td>
 </tr>
 </tbody>
 </table>
-<p>Two design choices are worth calling out:</p>
+<p>Two design choices are important to make clear:</p>
 <ul>
 <li>
-<strong>Responses are matrices.</strong> Finding the items a
-respondent has <em>not</em> yet seen is a single logical comparison
-(<code>admin[i, ] == 0</code>) instead of a join over a growing table.
-The positive values in <code>admin</code> additionally encode the
-<strong>order</strong> in which items were administered, which
-order-sensitive algorithms (such as paired-comparison updates) can
+<strong>Responses and simulation state are matrices.</strong> The
+full matrix of possible item responses, <code>R</code>, is unchanging
+throughout the simulation. The simulation state, <code>admin</code>,
+functions as a mask for this total response matrix. Items where
+<code>admin == 0</code> have not yet been administered, and items where
+<code>admin &gt; 0</code> have. The positive values in
+<code>admin</code> additionally encode the <strong>order</strong> in
+which items were administered, which order-sensitive algorithms can
 use.</li>
 <li>
 <strong>Parameters are data frames.</strong> This preserves the
 flexibility to carry arbitrary person or item parameters: add a column
 to <code>pers</code> or <code>item</code> and it flows through the
-simulation untouched.</li>
+simulation untouched while still interacting with existing selection and
+update functions.</li>
 </ul>
-<p>If you would rather work with long data frames inside your module,
-call <code>meow_long(R, admin)</code> to get the administered responses
-as an <code>id</code>/<code>item</code>/<code>resp</code> data frame,
-ordered by respondent and administration order.</p>
+<p>If you need to work with long data frames inside your module, call
+<code>meow_long(R, admin)</code> to get the administered responses as an
+<code>id</code>/<code>item</code>/<code>resp</code> data frame, ordered
+by respondent and administration order. While this enables
+<code>tidyverse</code>-style operations, this will likely come at a
+significant efficiency cost.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">R</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">admin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">0L</span>, <span class="fl">2L</span>, <span class="fl">1L</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -177,19 +182,22 @@ ordered by respondent and administration order.</p>
 elements:</p>
 <ul>
 <li>
-<code>resp</code> — a long data frame with columns <code>id</code>,
+<code>resp</code>: a long data frame with columns <code>id</code>,
 <code>item</code>, and <code>resp</code>.</li>
 <li>
-<code>pers_tru</code> — true person parameters; first column
-<code>id</code>, then parameters.</li>
+<code>pers_tru</code>: true person parameters; first column
+<code>id</code>, then parameter names.</li>
 <li>
-<code>item_tru</code> — true item parameters; first column
-<code>item</code>, then parameters.</li>
+<code>item_tru</code>: true item parameters; first column
+<code>item</code>, then parameter names.</li>
 </ul>
 <p><code><a href="../reference/meow.html">meow()</a></code> turns <code>resp</code> into the response matrix
-<code>R</code> once, before the loop starts, so the loader’s job is only
+<code>R</code> once, before the loop starts, so the loader’s only job is
 to produce the bank of potential responses and the ground-truth
-parameters.</p>
+parameter values. Below, we implement a data loader that draws
+respondent abilities from two normal distributions. Note the call to
+<code>set.seed(NULL)</code> to clear the seed before item selection and
+parameter updates.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_two_groups</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">N_per_group</span> <span class="op">=</span> <span class="fl">50</span>, <span class="va">N_items</span> <span class="op">=</span> <span class="fl">40</span>, <span class="va">data_seed</span> <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="va">data_seed</span><span class="op">)</span></span>
@@ -223,20 +231,20 @@ the ones the harness supplies to the other modules: <code>pers</code>,
 <div class="section level2">
 <h2 id="item-selection-functions">Item selection functions<a class="anchor" aria-label="anchor" href="#item-selection-functions"></a>
 </h2>
-<p>An item selection function decides which item to administer next. Its
-signature is</p>
+<p>An item selection function decides which item to administer next. The
+standard signature is</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select_fun</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">R</span>, <span class="va">admin</span>, <span class="va">adj_mat</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span> <span class="va">...</span> <span class="op">}</span></span></code></pre></div>
 <p>and it returns an <strong>administration matrix</strong> with the
-newly chosen cells marked non-zero. You only need to <em>add</em> items;
-the harness records the administration order for you, so setting a cell
-to <code>TRUE</code> or <code>1</code> is enough. Leave previously
-administered cells as they were. To stop administering items (a stopping
-rule), simply return <code>admin</code> unchanged — the simulation halts
-when an iteration adds nothing.</p>
-<p>Here is a complete custom selector that administers the easiest
-remaining item to each respondent (a deliberately naive rule), seeding
-the first five items on the first iteration:</p>
+cells that correspond to newly chosen items marked non-zero. You only
+need to <em>add</em> items; the harness records the administration order
+for you, so setting a cell to <code>TRUE</code> or <code>1</code> is
+enough. Leave previously administered cells as they were. To stop
+administering items (a stopping rule), simply return <code>admin</code>
+unchanged — the simulation halts when an iteration adds nothing.</p>
+<p>Here we present a complete custom selector that administers the
+easiest remaining item to each respondent, seeding the first five items
+in the bank on the first iteration:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select_easiest</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">R</span>, <span class="va">admin</span>, <span class="va">adj_mat</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">admin</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span>       <span class="co"># first iteration: seed five items</span></span>
@@ -251,20 +259,21 @@ the first five items on the first iteration:</p>
 <span>  <span class="op">}</span></span>
 <span>  <span class="va">admin</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>A few patterns to notice, all of which avoid touching a growing data
-frame:</p>
+<p>A few tools we use that may be helpful to designing your own
+selection functions:</p>
 <ul>
 <li>
-<code>admin[i, ] == 0</code> gives the unadministered items for
-respondent <code>i</code>.</li>
+<code>admin[i, ] == 0</code> gives the pool of unadministered items
+for respondent <code>i</code>.</li>
 <li>
 <code>rowSums(admin == 0) &gt; 0</code> identifies respondents who
-still need an item.</li>
+still have items they have not yet responded to.</li>
 <li>Setting <code>admin[i, pick] &lt;- 1L</code> administers item
-<code>pick</code>.</li>
+<code>pick</code> to respondent <code>i</code>.</li>
 </ul>
 <p>If you prefer to compute on long data,
-<code>meow_long(R, admin)</code> is always available.</p>
+<code>meow_long(R, admin)</code> is always available (but
+discouraged).</p>
 </div>
 <div class="section level2">
 <h2 id="parameter-update-functions">Parameter update functions<a class="anchor" aria-label="anchor" href="#parameter-update-functions"></a>
@@ -274,11 +283,12 @@ administered responses. Its signature is</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">update_fun</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">R</span>, <span class="va">admin</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span> <span class="va">...</span> <span class="op">}</span></span></code></pre></div>
 <p>and it returns a list with two elements, <code>pers</code> and
-<code>item</code>, the updated estimate data frames. The administered
-responses are <code>R[admin != 0]</code>, and their respondent/item
-indices come from <code>which(admin != 0, arr.ind = TRUE)</code>.</p>
-<p>This custom updater nudges each ability toward a simple
-proportion-correct heuristic and leaves items fixed:</p>
+<code>item</code>, the updated data frames of parameter estimates. The
+administered responses are <code>R[admin != 0]</code>, and their
+respondent and item indices can be found from
+<code>which(admin != 0, arr.ind = TRUE)</code>.</p>
+<p>This custom updater nudges each ability toward the current proportion
+correct, without touching any item parameters:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">update_pct_correct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">R</span>, <span class="va">admin</span>, <span class="va">rate</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">admin</span> <span class="op">!=</span> <span class="fl">0</span>, arr.ind <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -315,13 +325,13 @@ ones. Extra arguments are passed through <code>select_args</code>,
 <span><span class="co">#&gt; 4    4        0.3572759       -0.4892837      -0.25538328</span></span>
 <span><span class="co">#&gt; 5    5        0.3170362       -0.4094417      -0.38671245</span></span>
 <span><span class="co">#&gt; 6    6        0.2219253       -0.4082487      -0.39233825</span></span></code></pre></div>
-<p>The output object has the same shape no matter which modules you use
-— a <code>results</code> data frame (one row per iteration, an
+<p>The output object has the same shape no matter which modules you use:
+a <code>results</code> data frame (one row per iteration, an
 <code>est</code> and <code>bias</code> column for each parameter), a
 list of adjacency matrices in <code>adj_mats</code>, and the true
 parameters in <code>pers_tru</code> and <code>item_tru</code>. That
 consistency is what lets you reuse analysis and plotting code across
-studies; see <code><a href="../articles/meow-viz.html">vignette("meow-viz")</a></code>.</p>
+studies; see <code><a href="../articles/intro-viz.html">vignette("intro-viz")</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="checklist">Checklist<a class="anchor" aria-label="anchor" href="#checklist"></a>
@@ -338,8 +348,10 @@ administration matrix with new cells marked non-zero.</li>
 <li>Use <code>admin != 0</code> (or <code><a href="../reference/meow_administered.html">meow_administered()</a></code>)
 for the administered mask, and <code><a href="../reference/meow_long.html">meow_long()</a></code> if you want long
 data frames.</li>
-<li>Do not un-administer items, and implement stopping rules by
-declining to administer anything further.</li>
+<li>Do not attempt to un-administer items.</li>
+<li>Implement stopping rules by declining to administer additional items
+for completed individuals. Once <code>admin</code> doesn’t change
+between iterations, the simulation will terminate.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

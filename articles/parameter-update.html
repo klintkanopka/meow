@@ -38,11 +38,11 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
+<li><a class="dropdown-item" href="../articles/intro-viz.html">The `meow` Workflow: Visualizing Exposure Control Methods</a></li>
+    <li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
     <li><a class="dropdown-item" href="../articles/item-selection.html">Item Selection Functions</a></li>
     <li><a class="dropdown-item" href="../articles/parameter-update.html">Parameter Update Functions</a></li>
     <li><a class="dropdown-item" href="../articles/extending-meow.html">Extending meow: Writing Your Own Modules</a></li>
-    <li><a class="dropdown-item" href="../articles/meow-viz.html">Visualizing Item Exposure Control Methods</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -85,7 +85,8 @@
     
 <p>Parameter update functions re-estimate person and item parameters
 from the responses administered so far. They are the estimation engine
-of a <code>meow</code> simulation. For the full module contract, see
+of a <code>meow</code> simulation and can form the bulk of your runtime.
+For the full module contract, see
 <code><a href="../articles/extending-meow.html">vignette("extending-meow")</a></code>.</p>
 <div class="section level2">
 <h2 id="function-signature">Function signature<a class="anchor" aria-label="anchor" href="#function-signature"></a>
@@ -96,15 +97,16 @@ of a <code>meow</code> simulation. For the full module contract, see
 <span>  <span class="co"># ... re-estimate parameters ...</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>pers <span class="op">=</span> <span class="va">updated_pers</span>, item <span class="op">=</span> <span class="va">updated_item</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>It receives the current estimates (<code>pers</code>,
-<code>item</code>), the response matrix <code>R</code>, and the
-administration matrix <code>admin</code>, and returns a list with the
-updated <code>pers</code> and <code>item</code> data frames. The
-administered responses are obtained from the matrix state:</p>
+<p>It receives the current person and item parameter estimates
+(<code>pers</code>, <code>item</code>), the full response matrix
+<code>R</code>, and the non-negative integer valued administration
+matrix <code>admin</code>. Parameter update functions return a list with
+the updated <code>pers</code> and <code>item</code> data frames. The
+responses to administered items are obtained from the matrix state:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">idx</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">admin</span> <span class="op">!=</span> <span class="fl">0</span>, arr.ind <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">person</span> <span class="op">&lt;-</span> <span class="va">idx</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
-<span><span class="va">item_j</span> <span class="op">&lt;-</span> <span class="va">idx</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span></span>
+<span><span class="va">persons</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">idx</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">idx</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">resp</span>   <span class="op">&lt;-</span> <span class="va">R</span><span class="op">[</span><span class="va">idx</span><span class="op">]</span></span></code></pre></div>
 <p>or, equivalently, as a long data frame with
 <code>meow_long(R, admin)</code>.</p>
@@ -149,41 +151,12 @@ et al., 2025). See <code><a href="../articles/prowise-learn-update.html">vignett
 </div>
 </div>
 <div class="section level2">
-<h2 id="writing-a-custom-updater">Writing a custom updater<a class="anchor" aria-label="anchor" href="#writing-a-custom-updater"></a>
-</h2>
-<p>This updater shrinks each ability estimate toward the mean of the
-administered responses (a crude but illustrative rule) and leaves items
-unchanged.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">update_shrink</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">R</span>, <span class="va">admin</span>, <span class="va">weight</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">admin</span> <span class="op">!=</span> <span class="fl">0</span>, arr.ind <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  <span class="va">person</span> <span class="op">&lt;-</span> <span class="va">idx</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
-<span>  <span class="va">resp</span> <span class="op">&lt;-</span> <span class="va">R</span><span class="op">[</span><span class="va">idx</span><span class="op">]</span></span>
-<span>  <span class="va">score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">resp</span>, <span class="va">person</span>, <span class="va">mean</span><span class="op">)</span></span>
-<span>  <span class="va">target</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">qlogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="va">score</span>, <span class="fl">0.02</span><span class="op">)</span>, <span class="fl">0.98</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">who</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">target</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">pers</span><span class="op">$</span><span class="va">theta</span><span class="op">[</span><span class="va">who</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">weight</span><span class="op">)</span> <span class="op">*</span> <span class="va">pers</span><span class="op">$</span><span class="va">theta</span><span class="op">[</span><span class="va">who</span><span class="op">]</span> <span class="op">+</span> <span class="va">weight</span> <span class="op">*</span> <span class="va">target</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>pers <span class="op">=</span> <span class="va">pers</span>, item <span class="op">=</span> <span class="va">item</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/meow.html">meow</a></span><span class="op">(</span></span>
-<span>  select_fun  <span class="op">=</span> <span class="va">select_max_info</span>,</span>
-<span>  update_fun  <span class="op">=</span> <span class="va">update_shrink</span>,</span>
-<span>  data_loader <span class="op">=</span> <span class="va">data_simple_1pl</span>,</span>
-<span>  data_args   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N_persons <span class="op">=</span> <span class="fl">50</span>, N_items <span class="op">=</span> <span class="fl">30</span><span class="op">)</span>,</span>
-<span>  update_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>weight <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>,</span>
-<span>  fix         <span class="op">=</span> <span class="st">"item"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">results</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 26</span></span></code></pre></div>
-</div>
-<div class="section level2">
 <h2 id="best-practices">Best practices<a class="anchor" aria-label="anchor" href="#best-practices"></a>
 </h2>
 <ol style="list-style-type: decimal">
 <li>
-<strong>Return <code>list(pers, item)</code></strong> — both data
-frames, even if one is unchanged.</li>
+<strong>Return <code>list(pers, item)</code></strong> with both
+objects as both data frames, even if one is unchanged.</li>
 <li>
 <strong>Bound estimates</strong> to a sensible range to avoid
 divergence.</li>
@@ -192,10 +165,10 @@ divergence.</li>
 (<code><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply()</a></code>, matrix indexing) rather than looping over
 respondents or items.</li>
 <li>
-<strong>Respect administration order</strong> when it matters:
+<strong>Respect administration order</strong> when it matters: The
+best method is to use values from the <code>admin</code> matrix, but
 <code><a href="../reference/meow_long.html">meow_long()</a></code> returns responses ordered by respondent and
-then by administration order, which is what paired-comparison methods
-rely on.</li>
+then by administration order.</li>
 </ol>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

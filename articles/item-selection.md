@@ -1,8 +1,9 @@
 # Item Selection Functions
 
-Item selection functions determine which item is administered next to
-each respondent. They are one of the three swappable components of a
-`meow` simulation. For the full module contract, see
+Item selection functions, as you may have guessed, implement the rules
+that determine which item is administered next to each respondent. They
+are one of the three core swappable components of a `meow` simulation.
+For the full module contract, see
 [`vignette("extending-meow")`](https://klintkanopka.com/meow/articles/extending-meow.md);
 this vignette focuses on the bundled selectors and how to write your
 own.
@@ -19,15 +20,20 @@ select_fun <- function(pers, item, R, admin, adj_mat, ...) {
 }
 ```
 
-It receives the current person estimates (`pers`), item estimates
-(`item`), the respondent-by-item response matrix (`R`), the integer
-administration matrix (`admin`), and the item co-exposure matrix
-(`adj_mat`). It returns an administration matrix with the newly chosen
-cells marked non-zero. The harness records the order of administration,
-so you only need to *add* items.
+Any `select_fun()` receives the current person parameter estimates
+(`pers`), item parameter estimates (`item`), the full respondent-by-item
+response matrix (`R`), the integer administration matrix (`admin`), and
+the item co-exposure matrix (`adj_mat`). It then returns an
+administration matrix with the newly chosen cells marked with a non-zero
+integer value. The simulation harness itself will correctly record the
+order of administration, so you only need to mark newly administered
+items with non-zero values.
 
-The unadministered items for respondent `i` are
-`which(admin[i, ] == 0)`, and the respondents still needing an item are
+The default behavior when early stopping rules are not implemented in
+selection functions is run the simulation until it has administered
+every item to every respondent. The unadministered items for respondent
+`i` can be retrieved using `which(admin[i, ] == 0)`, and the respondents
+who still have items to respond to can be found using
 `which(rowSums(admin == 0) > 0)`.
 
 ## Bundled selectors
@@ -74,16 +80,18 @@ maximum is taken per row.
 and
 [`select_max_dist_enhanced()`](https://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)
 treat the item pool as a network whose edge weights are derived from the
-co-exposure matrix `adj_mat`. They administer the item farthest (by
-shortest-path distance) from the items a respondent has already seen,
-breaking ties by maximum information. See
+co-exposure adjacency matrix `adj_mat`. They administer the item
+farthest (by shortest-path distance) from the items a respondent has
+already seen, breaking ties using maximum information. See
 [`vignette("network-item-selection")`](https://klintkanopka.com/meow/articles/network-item-selection.md).
 
 ## Writing a custom selector
 
-A custom selector need only follow the signature and return an updated
-`admin`. Here we administer the item whose difficulty is closest to a
-respondent’s current ability — a simple “target the trait” rule.
+A custom selector need only follow the prescribed function signature and
+return an updated `admin` matrix. Here we administer the item whose
+difficulty is closest to a respondent’s current ability, which can be
+seen as maximizing information when all items are assumed to be equally
+discriminating.
 
 ``` r
 
@@ -119,10 +127,12 @@ nrow(sim$results)
 ## Best practices
 
 1.  **Handle the first iteration** with `if (!any(admin != 0))` to seed
-    an initial set of items.
+    an initial set of items so that you have baseline parameter
+    estimates to start from.
 2.  **Never un-administer** an item that has already been given.
-3.  **Implement stopping rules** by returning `admin` unchanged once a
-    respondent should receive no more items.
-4.  **Prefer matrix operations** over per-row loops where possible; use
+3.  **Implement stopping rules** by returning `admin` unchanged when you
+    want to end the simulation.
+4.  **Strongly prefer matrix operations** over per-row loops where
+    possible; use
     [`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md)
     only when long data is genuinely more convenient.

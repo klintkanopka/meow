@@ -2,7 +2,8 @@
 
 Parameter update functions re-estimate person and item parameters from
 the responses administered so far. They are the estimation engine of a
-`meow` simulation. For the full module contract, see
+`meow` simulation and can form the bulk of your runtime. For the full
+module contract, see
 [`vignette("extending-meow")`](https://klintkanopka.com/meow/articles/extending-meow.md).
 
 ## Function signature
@@ -17,16 +18,17 @@ update_fun <- function(pers, item, R, admin, ...) {
 }
 ```
 
-It receives the current estimates (`pers`, `item`), the response matrix
-`R`, and the administration matrix `admin`, and returns a list with the
-updated `pers` and `item` data frames. The administered responses are
-obtained from the matrix state:
+It receives the current person and item parameter estimates (`pers`,
+`item`), the full response matrix `R`, and the non-negative integer
+valued administration matrix `admin`. Parameter update functions return
+a list with the updated `pers` and `item` data frames. The responses to
+administered items are obtained from the matrix state:
 
 ``` r
 
 idx    <- which(admin != 0, arr.ind = TRUE)
-person <- idx[, 1]
-item_j <- idx[, 2]
+persons <- unique(idx[, 1])
+items <- unique(idx[, 2])
 resp   <- R[idx]
 ```
 
@@ -73,46 +75,16 @@ through paired comparisons of consecutively administered items, which
 controls rating drift (Vermeiren et al., 2025). See
 [`vignette("prowise-learn-update")`](https://klintkanopka.com/meow/articles/prowise-learn-update.md).
 
-## Writing a custom updater
-
-This updater shrinks each ability estimate toward the mean of the
-administered responses (a crude but illustrative rule) and leaves items
-unchanged.
-
-``` r
-
-update_shrink <- function(pers, item, R, admin, weight = 0.5) {
-  idx <- which(admin != 0, arr.ind = TRUE)
-  person <- idx[, 1]
-  resp <- R[idx]
-  score <- tapply(resp, person, mean)
-  target <- stats::qlogis(pmin(pmax(score, 0.02), 0.98))
-  who <- as.integer(names(target))
-  pers$theta[who] <- (1 - weight) * pers$theta[who] + weight * target
-  list(pers = pers, item = item)
-}
-
-sim <- meow(
-  select_fun  = select_max_info,
-  update_fun  = update_shrink,
-  data_loader = data_simple_1pl,
-  data_args   = list(N_persons = 50, N_items = 30),
-  update_args = list(weight = 0.3),
-  fix         = "item"
-)
-nrow(sim$results)
-#> [1] 26
-```
-
 ## Best practices
 
-1.  **Return `list(pers, item)`** — both data frames, even if one is
-    unchanged.
+1.  **Return `list(pers, item)`** with both objects as both data frames,
+    even if one is unchanged.
 2.  **Bound estimates** to a sensible range to avoid divergence.
 3.  **Vectorize** over the administered responses
     ([`tapply()`](https://rdrr.io/r/base/tapply.html), matrix indexing)
     rather than looping over respondents or items.
-4.  **Respect administration order** when it matters:
+4.  **Respect administration order** when it matters: The best method is
+    to use values from the `admin` matrix, but
     [`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md)
     returns responses ordered by respondent and then by administration
-    order, which is what paired-comparison methods rely on.
+    order.

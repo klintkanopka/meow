@@ -29,6 +29,8 @@ Included item selection algorithms.
   : Item selection by maximum Fisher information.
 - [`select_random()`](https://klintkanopka.com/meow/reference/select_random.md)
   : Item selection by random draw from the remaining item bank.
+- [`select_restrict_rate()`](https://klintkanopka.com/meow/reference/select_restrict_rate.md)
+  : Maximum-information item selection with an exposure-rate cap.
 - [`select_sequential()`](https://klintkanopka.com/meow/reference/select_sequential.md)
   : Item selection by item id, simulating a fixed test form.
 

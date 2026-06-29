@@ -27,6 +27,7 @@ First public release.
   ([`select_sequential()`](https://klintkanopka.com/meow/reference/select_sequential.md),
   [`select_random()`](https://klintkanopka.com/meow/reference/select_random.md),
   [`select_max_info()`](https://klintkanopka.com/meow/reference/select_max_info.md),
+  [`select_restrict_rate()`](https://klintkanopka.com/meow/reference/select_restrict_rate.md),
   [`select_max_dist()`](https://klintkanopka.com/meow/reference/select_max_dist.md),
   [`select_max_dist_enhanced()`](https://klintkanopka.com/meow/reference/select_max_dist_enhanced.md)),
   and parameter updaters

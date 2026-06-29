@@ -4,13 +4,13 @@ pkgdown_sha: ~
 articles:
   data-loaders: data-loaders.html
   extending-meow: extending-meow.html
+  intro-viz: intro-viz.html
   item-selection: item-selection.html
   maths-garden-update: maths-garden-update.html
-  meow-viz: meow-viz.html
   network-item-selection: network-item-selection.html
   parameter-update: parameter-update.html
   prowise-learn-update: prowise-learn-update.html
-last_built: 2026-06-28T23:37Z
+last_built: 2026-06-29T21:57Z
 urls:
   reference: https://klintkanopka.com/meow/reference
   article: https://klintkanopka.com/meow/articles

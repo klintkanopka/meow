@@ -2,18 +2,19 @@
 
 The whole point of `meow` is that you can drop your own algorithms into
 a shared simulation harness and compare them, on equal footing, against
-existing methods. This vignette is the authoritative reference for the
-three kinds of module you can write: **data loaders**, **item selection
-functions**, and **parameter update functions**.
+competing methods. This vignette is meant to serve as the authoritative
+reference for the three kinds of modules you can write: **data
+loaders**, **item selection functions**, and **parameter update
+functions**.
 
 ## The simulation state
 
-A `meow` simulation is a single call to
+A single `meow` simulation is a conducted with one call to
 [`meow()`](https://klintkanopka.com/meow/reference/meow.md), which
 repeatedly alternates between an item selection step and a parameter
-update step until no further items are administered. For speed, the
-simulation state is represented with **matrices** rather than long data
-frames:
+update step until no further items are administered. For speed and
+flexibility, the simulation state is represented internally with
+**matrices**:
 
 | Object | Type | Meaning |
 |----|----|----|
@@ -23,22 +24,25 @@ frames:
 | `item` | data frame | Item parameter estimates. First column `item`, then one column per parameter. |
 | `adj_mat` | items x items matrix | Item co-exposure counts (see [`construct_adj_mat()`](https://klintkanopka.com/meow/reference/construct_adj_mat.md)). |
 
-Two design choices are worth calling out:
+Two design choices are important to make clear:
 
-- **Responses are matrices.** Finding the items a respondent has *not*
-  yet seen is a single logical comparison (`admin[i, ] == 0`) instead of
-  a join over a growing table. The positive values in `admin`
-  additionally encode the **order** in which items were administered,
-  which order-sensitive algorithms (such as paired-comparison updates)
-  can use.
+- **Responses and simulation state are matrices.** The full matrix of
+  possible item responses, `R`, is unchanging throughout the simulation.
+  The simulation state, `admin`, functions as a mask for this total
+  response matrix. Items where `admin == 0` have not yet been
+  administered, and items where `admin > 0` have. The positive values in
+  `admin` additionally encode the **order** in which items were
+  administered, which order-sensitive algorithms can use.
 - **Parameters are data frames.** This preserves the flexibility to
   carry arbitrary person or item parameters: add a column to `pers` or
-  `item` and it flows through the simulation untouched.
+  `item` and it flows through the simulation untouched while still
+  interacting with existing selection and update functions.
 
-If you would rather work with long data frames inside your module, call
+If you need to work with long data frames inside your module, call
 `meow_long(R, admin)` to get the administered responses as an
 `id`/`item`/`resp` data frame, ordered by respondent and administration
-order.
+order. While this enables `tidyverse`-style operations, this will likely
+come at a significant efficiency cost.
 
 ``` r
 
@@ -56,16 +60,19 @@ meow_long(R, admin)
 A data loader sets up a simulation. It takes any arguments you like
 (passed through `data_args`) and returns a list with three elements:
 
-- `resp` — a long data frame with columns `id`, `item`, and `resp`.
-- `pers_tru` — true person parameters; first column `id`, then
-  parameters.
-- `item_tru` — true item parameters; first column `item`, then
-  parameters.
+- `resp`: a long data frame with columns `id`, `item`, and `resp`.
+- `pers_tru`: true person parameters; first column `id`, then parameter
+  names.
+- `item_tru`: true item parameters; first column `item`, then parameter
+  names.
 
 [`meow()`](https://klintkanopka.com/meow/reference/meow.md) turns `resp`
 into the response matrix `R` once, before the loop starts, so the
-loader’s job is only to produce the bank of potential responses and the
-ground-truth parameters.
+loader’s only job is to produce the bank of potential responses and the
+ground-truth parameter values. Below, we implement a data loader that
+draws respondent abilities from two normal distributions. Note the call
+to `set.seed(NULL)` to clear the seed before item selection and
+parameter updates.
 
 ``` r
 
@@ -101,24 +108,25 @@ harness supplies to the other modules: `pers`, `item`, `R`, `admin`,
 
 ## Item selection functions
 
-An item selection function decides which item to administer next. Its
-signature is
+An item selection function decides which item to administer next. The
+standard signature is
 
 ``` r
 
 select_fun <- function(pers, item, R, admin, adj_mat, ...) { ... }
 ```
 
-and it returns an **administration matrix** with the newly chosen cells
-marked non-zero. You only need to *add* items; the harness records the
-administration order for you, so setting a cell to `TRUE` or `1` is
-enough. Leave previously administered cells as they were. To stop
-administering items (a stopping rule), simply return `admin` unchanged —
-the simulation halts when an iteration adds nothing.
+and it returns an **administration matrix** with the cells that
+correspond to newly chosen items marked non-zero. You only need to *add*
+items; the harness records the administration order for you, so setting
+a cell to `TRUE` or `1` is enough. Leave previously administered cells
+as they were. To stop administering items (a stopping rule), simply
+return `admin` unchanged — the simulation halts when an iteration adds
+nothing.
 
-Here is a complete custom selector that administers the easiest
-remaining item to each respondent (a deliberately naive rule), seeding
-the first five items on the first iteration:
+Here we present a complete custom selector that administers the easiest
+remaining item to each respondent, seeding the first five items in the
+bank on the first iteration:
 
 ``` r
 
@@ -137,16 +145,18 @@ select_easiest <- function(pers, item, R, admin, adj_mat = NULL) {
 }
 ```
 
-A few patterns to notice, all of which avoid touching a growing data
-frame:
+A few tools we use that may be helpful to designing your own selection
+functions:
 
-- `admin[i, ] == 0` gives the unadministered items for respondent `i`.
-- `rowSums(admin == 0) > 0` identifies respondents who still need an
-  item.
-- Setting `admin[i, pick] <- 1L` administers item `pick`.
+- `admin[i, ] == 0` gives the pool of unadministered items for
+  respondent `i`.
+- `rowSums(admin == 0) > 0` identifies respondents who still have items
+  they have not yet responded to.
+- Setting `admin[i, pick] <- 1L` administers item `pick` to respondent
+  `i`.
 
 If you prefer to compute on long data, `meow_long(R, admin)` is always
-available.
+available (but discouraged).
 
 ## Parameter update functions
 
@@ -159,12 +169,12 @@ update_fun <- function(pers, item, R, admin, ...) { ... }
 ```
 
 and it returns a list with two elements, `pers` and `item`, the updated
-estimate data frames. The administered responses are `R[admin != 0]`,
-and their respondent/item indices come from
+data frames of parameter estimates. The administered responses are
+`R[admin != 0]`, and their respondent and item indices can be found from
 `which(admin != 0, arr.ind = TRUE)`.
 
-This custom updater nudges each ability toward a simple
-proportion-correct heuristic and leaves items fixed:
+This custom updater nudges each ability toward the current proportion
+correct, without touching any item parameters:
 
 ``` r
 
@@ -208,12 +218,12 @@ head(sim$results[, 1:4])
 #> 6    6        0.2219253       -0.4082487      -0.39233825
 ```
 
-The output object has the same shape no matter which modules you use — a
+The output object has the same shape no matter which modules you use: a
 `results` data frame (one row per iteration, an `est` and `bias` column
 for each parameter), a list of adjacency matrices in `adj_mats`, and the
 true parameters in `pers_tru` and `item_tru`. That consistency is what
 lets you reuse analysis and plotting code across studies; see
-[`vignette("meow-viz")`](https://klintkanopka.com/meow/articles/meow-viz.md).
+[`vignette("intro-viz")`](https://klintkanopka.com/meow/articles/intro-viz.md).
 
 ## Checklist
 
@@ -227,5 +237,7 @@ lets you reuse analysis and plotting code across studies; see
   for the administered mask, and
   [`meow_long()`](https://klintkanopka.com/meow/reference/meow_long.md)
   if you want long data frames.
-- Do not un-administer items, and implement stopping rules by declining
-  to administer anything further.
+- Do not attempt to un-administer items.
+- Implement stopping rules by declining to administer additional items
+  for completed individuals. Once `admin` doesn’t change between
+  iterations, the simulation will terminate.

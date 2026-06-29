@@ -1,5 +1,12 @@
 # Articles
 
+### Getting Started
+
+A start-to-finish simulation workflow
+
+- [The \`meow\` Workflow: Visualizing Exposure Control
+  Methods](https://klintkanopka.com/meow/articles/intro-viz.md):
+
 ### Building Blocks
 
 The structure and design of the core components of the `meow` framework
@@ -10,15 +17,8 @@ The structure and design of the core components of the `meow` framework
   Functions](https://klintkanopka.com/meow/articles/item-selection.md):
 - [Parameter Update
   Functions](https://klintkanopka.com/meow/articles/parameter-update.md):
-
-### Working with `meow`
-
-Start-to-finish simulation workflows
-
 - [Extending meow: Writing Your Own
   Modules](https://klintkanopka.com/meow/articles/extending-meow.md):
-- [Visualizing Item Exposure Control
-  Methods](https://klintkanopka.com/meow/articles/meow-viz.md):
 
 ### Implementations
 

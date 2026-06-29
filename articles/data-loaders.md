@@ -125,6 +125,6 @@ head(data$resp)
 If your data loader uses random number generation and accepts a seed for
 reproducibility, **clear the seed at the end** with `set.seed(NULL)`.
 Otherwise the seed persists into the rest of the simulation and makes
-the downstream item selection and parameter updates deterministic —
-which prevents you from comparing multiple stochastic runs on the same
+the downstream item selection and parameter updates deterministic, which
+will prevent you from comparing multiple stochastic runs on the same
 data set.

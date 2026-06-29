@@ -38,11 +38,11 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
+<li><a class="dropdown-item" href="../articles/intro-viz.html">The `meow` Workflow: Visualizing Exposure Control Methods</a></li>
+    <li><a class="dropdown-item" href="../articles/data-loaders.html">Data Loaders</a></li>
     <li><a class="dropdown-item" href="../articles/item-selection.html">Item Selection Functions</a></li>
     <li><a class="dropdown-item" href="../articles/parameter-update.html">Parameter Update Functions</a></li>
     <li><a class="dropdown-item" href="../articles/extending-meow.html">Extending meow: Writing Your Own Modules</a></li>
-    <li><a class="dropdown-item" href="../articles/meow-viz.html">Visualizing Item Exposure Control Methods</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -83,8 +83,9 @@
 
     
     
-<p>Item selection functions determine which item is administered next to
-each respondent. They are one of the three swappable components of a
+<p>Item selection functions, as you may have guessed, implement the
+rules that determine which item is administered next to each respondent.
+They are one of the three core swappable components of a
 <code>meow</code> simulation. For the full module contract, see
 <code><a href="../articles/extending-meow.html">vignette("extending-meow")</a></code>; this vignette focuses on the
 bundled selectors and how to write your own.</p>
@@ -97,16 +98,23 @@ bundled selectors and how to write your own.</p>
 <span>  <span class="co"># ... decide which items to administer ...</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">admin</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>It receives the current person estimates (<code>pers</code>), item
-estimates (<code>item</code>), the respondent-by-item response matrix
+<p>Any <code>select_fun()</code> receives the current person parameter
+estimates (<code>pers</code>), item parameter estimates
+(<code>item</code>), the full respondent-by-item response matrix
 (<code>R</code>), the integer administration matrix
 (<code>admin</code>), and the item co-exposure matrix
-(<code>adj_mat</code>). It returns an administration matrix with the
-newly chosen cells marked non-zero. The harness records the order of
-administration, so you only need to <em>add</em> items.</p>
-<p>The unadministered items for respondent <code>i</code> are
-<code>which(admin[i, ] == 0)</code>, and the respondents still needing
-an item are <code>which(rowSums(admin == 0) &gt; 0)</code>.</p>
+(<code>adj_mat</code>). It then returns an administration matrix with
+the newly chosen cells marked with a non-zero integer value. The
+simulation harness itself will correctly record the order of
+administration, so you only need to mark newly administered items with
+non-zero values.</p>
+<p>The default behavior when early stopping rules are not implemented in
+selection functions is run the simulation until it has administered
+every item to every respondent. The unadministered items for respondent
+<code>i</code> can be retrieved using
+<code>which(admin[i, ] == 0)</code>, and the respondents who still have
+items to respond to can be found using
+<code>which(rowSums(admin == 0) &gt; 0)</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="bundled-selectors">Bundled selectors<a class="anchor" aria-label="anchor" href="#bundled-selectors"></a>
@@ -151,20 +159,21 @@ and the maximum is taken per row.</p>
 </h3>
 <p><code><a href="../reference/select_max_dist.html">select_max_dist()</a></code> and
 <code><a href="../reference/select_max_dist_enhanced.html">select_max_dist_enhanced()</a></code> treat the item pool as a network
-whose edge weights are derived from the co-exposure matrix
+whose edge weights are derived from the co-exposure adjacency matrix
 <code>adj_mat</code>. They administer the item farthest (by
 shortest-path distance) from the items a respondent has already seen,
-breaking ties by maximum information. See
+breaking ties using maximum information. See
 <code><a href="../articles/network-item-selection.html">vignette("network-item-selection")</a></code>.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="writing-a-custom-selector">Writing a custom selector<a class="anchor" aria-label="anchor" href="#writing-a-custom-selector"></a>
 </h2>
-<p>A custom selector need only follow the signature and return an
-updated <code>admin</code>. Here we administer the item whose difficulty
-is closest to a respondent’s current ability — a simple “target the
-trait” rule.</p>
+<p>A custom selector need only follow the prescribed function signature
+and return an updated <code>admin</code> matrix. Here we administer the
+item whose difficulty is closest to a respondent’s current ability,
+which can be seen as maximizing information when all items are assumed
+to be equally discriminating.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select_targeted</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pers</span>, <span class="va">item</span>, <span class="va">R</span>, <span class="va">admin</span>, <span class="va">adj_mat</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">admin</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -196,18 +205,18 @@ trait” rule.</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Handle the first iteration</strong> with
-<code>if (!any(admin != 0))</code> to seed an initial set of items.</li>
+<code>if (!any(admin != 0))</code> to seed an initial set of items so
+that you have baseline parameter estimates to start from.</li>
 <li>
 <strong>Never un-administer</strong> an item that has already been
 given.</li>
 <li>
 <strong>Implement stopping rules</strong> by returning
-<code>admin</code> unchanged once a respondent should receive no more
-items.</li>
+<code>admin</code> unchanged when you want to end the simulation.</li>
 <li>
-<strong>Prefer matrix operations</strong> over per-row loops where
-possible; use <code><a href="../reference/meow_long.html">meow_long()</a></code> only when long data is genuinely
-more convenient.</li>
+<strong>Strongly prefer matrix operations</strong> over per-row
+loops where possible; use <code><a href="../reference/meow_long.html">meow_long()</a></code> only when long data
+is genuinely more convenient.</li>
 </ol>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
