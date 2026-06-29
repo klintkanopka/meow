@@ -2,7 +2,7 @@
 title: "The `meow` Workflow: Visualizing Exposure Control Methods"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Visualizing Item Exposure Control Methods}
+  %\VignetteIndexEntry{The meow Workflow: Visualizing Exposure Control Methods}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1,12 +1,19 @@
+## Submission
+
+This is a new submission of the package `meow` (version 1.0.0).
+
+## Test environments
+
+* local: macOS (aarch64), R 4.5.2
+* win-builder: R-devel
+* GitHub Actions: macOS-release, windows-release, ubuntu-devel/release/oldrel-1
+
+
 ## R CMD check results
 
 0 errors | 0 warnings | 1 note
 
-* checking CRAN incoming feasibility ... NOTE
-  Maintainer: 'Klint Kanopka <klint.kanopka@gmail.com>'
-  New submission
-
-This note is expected for a first-time submission.
+The note is the expected flag for a first-time submission.
 
 ## Notes
 
